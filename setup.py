@@ -22,17 +22,13 @@
 
 from distutils.core import setup
 
-with open('README.rst', 'r') as f:
-    readme = f.read()
-
 setup(
     name='miniflux',
-    version='0.0.1.dev2',
+    version='0.0.1.dev3',
     install_requires=[
         'requests',
     ],
-    description='Client for Miniflux REST API',
-    long_description=readme,
+    description='Client library for Miniflux REST API',
     url='https://github.com/miniflux/miniflux-python',
     author='Frederic Guillot',
     author_email='support@miniflux.net',

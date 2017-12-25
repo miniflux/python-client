@@ -1,0 +1,12 @@
+notifications:
+  email: false
+language: python
+python:
+  - '3.6'
+  - '3.5'
+  - '3.4'
+install:
+  - pip install .
+  - pip install -r test-requirements.txt
+script:
+  - py.test --pep8

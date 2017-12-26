@@ -228,6 +228,44 @@ def test_get_entries():
     assert result == expected_result
 
 
+def test_get_user_by_id():
+    requests = _get_request_mock()
+    expected_result = []
+
+    response = mock.Mock()
+    response.status_code = 200
+    response.json.return_value = expected_result
+
+    requests.get.return_value = response
+
+    client = miniflux.Client("http://localhost", "username", "password")
+    result = client.get_user_by_id(123)
+
+    requests.get.assert_called_once_with('http://localhost/v1/users/123',
+                                         auth=('username', 'password'))
+
+    assert result == expected_result
+
+
+def test_get_user_by_username():
+    requests = _get_request_mock()
+    expected_result = []
+
+    response = mock.Mock()
+    response.status_code = 200
+    response.json.return_value = expected_result
+
+    requests.get.return_value = response
+
+    client = miniflux.Client("http://localhost", "username", "password")
+    result = client.get_user_by_username("foobar")
+
+    requests.get.assert_called_once_with('http://localhost/v1/users/foobar',
+                                         auth=('username', 'password'))
+
+    assert result == expected_result
+
+
 def _get_request_mock():
     patcher = mock.patch('miniflux.requests')
     return patcher.start()

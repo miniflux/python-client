@@ -232,8 +232,14 @@ class Client:
             return response.json()
         raise ClientError(response)
 
-    def get_user(self, user_id):
-        endpoint = self._get_endpoint('/users/{}'.format(user_id))
+    def get_user_by_id(self, user_id):
+        return self._get_user(user_id)
+
+    def get_user_by_username(self, username):
+        return self._get_user(username)
+
+    def _get_user(self, user_id_or_username):
+        endpoint = self._get_endpoint('/users/{}'.format(user_id_or_username))
         response = requests.get(endpoint, auth=self._auth)
         if response.status_code == 200:
             return response.json()

@@ -55,6 +55,26 @@ def test_get_error_with_bad_response():
     assert error.get_error_reason() == 'status_code=404'
 
 
+def test_base_url_with_trailing_slash():
+    requests = _get_request_mock()
+    expected_result = [{"url": "http://example.org/feed", "title": "Example", "type": "RSS"}]
+
+    response = mock.Mock()
+    response.status_code = 200
+    response.json.return_value = expected_result
+
+    requests.post.return_value = response
+
+    client = miniflux.Client("http://localhost/", "username", "password")
+    result = client.discover("http://example.org/")
+
+    requests.post.assert_called_once_with('http://localhost/v1/discover',
+                                          auth=('username', 'password'),
+                                          data='{"url": "http://example.org/"}')
+
+    assert result == expected_result
+
+
 def test_discover():
     requests = _get_request_mock()
     expected_result = [{"url": "http://example.org/feed", "title": "Example", "type": "RSS"}]

@@ -24,7 +24,7 @@ from distutils.core import setup
 
 setup(
     name='miniflux',
-    version='0.0.1.dev3',
+    version='0.0.1.dev4',
     install_requires=[
         'requests',
     ],

@@ -45,6 +45,9 @@ class Client:
         self._auth = (self._username, self._password)
 
     def _get_endpoint(self, path):
+        if len(self._base_url) > 0 and self._base_url[-1:] == '/':
+            self._base_url = self._base_url[:-1]
+
         return '{}/v{}{}'.format(self._base_url, self.API_VERSION, path)
 
     def _get_params(self, status, offset, limit, order, direction):

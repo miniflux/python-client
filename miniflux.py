@@ -70,6 +70,13 @@ class Client:
 
         return params if len(params) > 0 else None
 
+    def export(self):
+        endpoint = self._get_endpoint('/export')
+        response = requests.get(endpoint, auth=self._auth)
+        if response.status_code == 200:
+            return response.text
+        raise ClientError(response)
+
     def discover(self, website_url):
         endpoint = self._get_endpoint('/discover')
         data = {'url': website_url}

@@ -111,6 +111,25 @@ def test_discover_with_server_error():
         client.discover("http://example.org/")
 
 
+def test_export():
+    requests = _get_request_mock()
+    expected_result = "OPML feed"
+
+    response = mock.Mock()
+    response.status_code = 200
+    response.text = expected_result
+
+    requests.get.return_value = response
+
+    client = miniflux.Client("http://localhost", "username", "password")
+    result = client.export()
+
+    requests.get.assert_called_once_with('http://localhost/v1/export',
+                                         auth=('username', 'password'))
+
+    assert result == expected_result
+
+
 def test_get_feed():
     requests = _get_request_mock()
     expected_result = {"id": 123, "title": "Example"}

@@ -27,6 +27,8 @@ import pytest
 import miniflux
 from miniflux import ClientError
 
+from requests.exceptions import Timeout
+
 
 def test_get_error_reason():
     response = mock.Mock()
@@ -70,7 +72,8 @@ def test_base_url_with_trailing_slash():
 
     requests.post.assert_called_once_with('http://localhost/v1/discover',
                                           auth=('username', 'password'),
-                                          data='{"url": "http://example.org/"}')
+                                          data='{"url": "http://example.org/"}',
+                                          timeout=mock.ANY)
 
     assert result == expected_result
 
@@ -90,7 +93,8 @@ def test_discover():
 
     requests.post.assert_called_once_with('http://localhost/v1/discover',
                                           auth=('username', 'password'),
-                                          data='{"url": "http://example.org/"}')
+                                          data='{"url": "http://example.org/"}',
+                                          timeout=mock.ANY)
 
     assert result == expected_result
 
@@ -125,7 +129,8 @@ def test_export():
     result = client.export()
 
     requests.get.assert_called_once_with('http://localhost/v1/export',
-                                         auth=('username', 'password'))
+                                         auth=('username', 'password'),
+                                         timeout=mock.ANY)
 
     assert result == expected_result
 
@@ -144,7 +149,8 @@ def test_get_feed():
     result = client.get_feed(123)
 
     requests.get.assert_called_once_with('http://localhost/v1/feeds/123',
-                                         auth=('username', 'password'))
+                                         auth=('username', 'password'),
+                                         timeout=mock.ANY)
 
     assert result == expected_result
 
@@ -164,7 +170,8 @@ def test_create_feed():
 
     requests.post.assert_called_once_with('http://localhost/v1/feeds',
                                           auth=('username', 'password'),
-                                          data=mock.ANY)
+                                          data=mock.ANY,
+                                          timeout=mock.ANY)
 
     assert result == expected_result['feed_id']
 
@@ -183,7 +190,8 @@ def test_refresh_feed():
     result = client.refresh_feed(123)
 
     requests.put.assert_called_once_with('http://localhost/v1/feeds/123/refresh',
-                                         auth=('username', 'password'))
+                                         auth=('username', 'password'),
+                                         timeout=mock.ANY)
 
     assert result == expected_result
 
@@ -203,7 +211,8 @@ def test_get_feed_entries():
 
     requests.get.assert_called_once_with('http://localhost/v1/feeds/123/entries',
                                          auth=('username', 'password'),
-                                         params={'direction': 'asc'})
+                                         params={'direction': 'asc'},
+                                         timeout=mock.ANY)
 
     assert result == expected_result
 
@@ -222,7 +231,8 @@ def test_get_entry():
     result = client.get_entry(123)
 
     requests.get.assert_called_once_with('http://localhost/v1/entries/123',
-                                         auth=('username', 'password'))
+                                         auth=('username', 'password'),
+                                         timeout=mock.ANY)
 
     assert result == expected_result
 
@@ -242,7 +252,8 @@ def test_get_entries():
 
     requests.get.assert_called_once_with('http://localhost/v1/entries',
                                          auth=('username', 'password'),
-                                         params=mock.ANY)
+                                         params=mock.ANY,
+                                         timeout=mock.ANY)
 
     assert result == expected_result
 
@@ -261,7 +272,8 @@ def test_get_user_by_id():
     result = client.get_user_by_id(123)
 
     requests.get.assert_called_once_with('http://localhost/v1/users/123',
-                                         auth=('username', 'password'))
+                                         auth=('username', 'password'),
+                                         timeout=mock.ANY)
 
     assert result == expected_result
 
@@ -280,9 +292,33 @@ def test_get_user_by_username():
     result = client.get_user_by_username("foobar")
 
     requests.get.assert_called_once_with('http://localhost/v1/users/foobar',
-                                         auth=('username', 'password'))
+                                         auth=('username', 'password'),
+                                         timeout=mock.ANY)
 
     assert result == expected_result
+
+
+def test_timeout():
+    requests = _get_request_mock()
+    expected_result = ""
+
+    response = mock.Mock()
+    response.status_code = 200
+    response.text = expected_result
+
+    requests.get.return_value = response
+
+    requests.get.side_effect = Timeout()
+
+    client = miniflux.Client("http://localhost", "username", "password", 1)
+    result = ""
+    with pytest.raises(Timeout):
+        result = client.export()
+
+    assert result == expected_result
+    requests.get.assert_called_once_with('http://localhost/v1/export',
+                                         auth=('username', 'password'),
+                                         timeout=1)
 
 
 def _get_request_mock():

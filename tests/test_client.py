@@ -135,6 +135,45 @@ def test_export():
     assert result == expected_result
 
 
+def test_import():
+    requests = _get_request_mock()
+    input_data = "my opml data"
+
+    response = mock.Mock()
+    response.status_code = 201
+
+    requests.post.return_value = response
+
+    client = miniflux.Client("http://localhost", "username", "password")
+    client.import_feeds(input_data)
+
+    requests.post.assert_called_once_with('http://localhost/v1/import',
+                                          data=input_data,
+                                          auth=('username', 'password'),
+                                          timeout=mock.ANY)
+
+
+def test_import_failure():
+    requests = _get_request_mock()
+    input_data = "my opml data"
+
+    response = mock.Mock()
+    response.status_code = 500
+    response.json.return_value = {"error_message": "random error"}
+
+    requests.post.return_value = response
+
+    client = miniflux.Client("http://localhost", "username", "password")
+
+    with pytest.raises(ClientError):
+        client.import_feeds(input_data)
+
+    requests.post.assert_called_once_with('http://localhost/v1/import',
+                                          data=input_data,
+                                          auth=('username', 'password'),
+                                          timeout=mock.ANY)
+
+
 def test_get_feed():
     requests = _get_request_mock()
     expected_result = {"id": 123, "title": "Example"}
@@ -300,22 +339,12 @@ def test_get_user_by_username():
 
 def test_timeout():
     requests = _get_request_mock()
-    expected_result = ""
-
-    response = mock.Mock()
-    response.status_code = 200
-    response.text = expected_result
-
-    requests.get.return_value = response
-
     requests.get.side_effect = Timeout()
 
     client = miniflux.Client("http://localhost", "username", "password", 1)
-    result = ""
     with pytest.raises(Timeout):
-        result = client.export()
+        client.export()
 
-    assert result == expected_result
     requests.get.assert_called_once_with('http://localhost/v1/export',
                                          auth=('username', 'password'),
                                          timeout=1)

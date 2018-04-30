@@ -72,10 +72,20 @@ class Client:
         return params if len(params) > 0 else None
 
     def export(self):
+        return self.export_feeds()
+
+    def export_feeds(self):
         endpoint = self._get_endpoint('/export')
         response = requests.get(endpoint, auth=self._auth, timeout=self._timeout)
         if response.status_code == 200:
             return response.text
+        raise ClientError(response)
+
+    def import_feeds(self, opml):
+        endpoint = self._get_endpoint('/import')
+        response = requests.post(endpoint, data=opml, auth=self._auth, timeout=self._timeout)
+        if response.status_code == 201:
+            return response.json()
         raise ClientError(response)
 
     def discover(self, website_url):

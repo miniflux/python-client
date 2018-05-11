@@ -22,16 +22,24 @@
 
 from distutils.core import setup
 
+
+def readme():
+    with open('README.rst') as f:
+        return f.read()
+
+
 setup(
     name='miniflux',
-    version='0.0.4',
+    version='0.0.5',
     install_requires=[
         'requests',
     ],
     description='Client library for Miniflux REST API',
+    long_description=readme(),
+    keywords='rss atom rdf jsonfeed feed miniflux',
     url='https://github.com/miniflux/miniflux-python',
     author='Frederic Guillot',
-    author_email='support@miniflux.net',
+    author_email='fred@miniflux.net',
     license='MIT',
     py_modules=['miniflux'],
     python_requires='>=3.4',

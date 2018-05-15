@@ -78,6 +78,40 @@ def test_base_url_with_trailing_slash():
     assert result == expected_result
 
 
+def test_get_me():
+    requests = _get_request_mock()
+    expected_result = {"id": 123, "username": "foobar"}
+
+    response = mock.Mock()
+    response.status_code = 200
+    response.json.return_value = expected_result
+
+    requests.get.return_value = response
+
+    client = miniflux.Client("http://localhost", "username", "password")
+    result = client.me()
+
+    requests.get.assert_called_once_with('http://localhost/v1/me',
+                                         auth=('username', 'password'),
+                                         timeout=mock.ANY)
+
+    assert result == expected_result
+
+
+def test_get_me_with_server_error():
+    requests = _get_request_mock()
+
+    response = mock.Mock()
+    response.status_code = 500
+
+    requests.get.return_value = response
+
+    client = miniflux.Client("http://localhost", "username", "password")
+
+    with pytest.raises(ClientError):
+        client.me()
+
+
 def test_discover():
     requests = _get_request_mock()
     expected_result = [{"url": "http://example.org/feed", "title": "Example", "type": "RSS"}]

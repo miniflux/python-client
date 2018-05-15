@@ -71,6 +71,13 @@ class Client:
 
         return params if len(params) > 0 else None
 
+    def me(self):
+        endpoint = self._get_endpoint('/me')
+        response = requests.get(endpoint, auth=self._auth, timeout=self._timeout)
+        if response.status_code == 200:
+            return response.json()
+        raise ClientError(response)
+
     def export(self):
         return self.export_feeds()
 

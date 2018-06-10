@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import time
 from unittest import mock
 
 import pytest
@@ -280,6 +281,27 @@ def test_get_feed_entries():
     requests.get.return_value = response
 
     client = miniflux.Client("http://localhost", "username", "password")
+    result = client.get_feed_entries(123)
+
+    requests.get.assert_called_once_with('http://localhost/v1/feeds/123/entries',
+                                         auth=('username', 'password'),
+                                         params=None,
+                                         timeout=mock.ANY)
+
+    assert result == expected_result
+
+
+def test_get_feed_entries_with_direction_param():
+    requests = _get_request_mock()
+    expected_result = []
+
+    response = mock.Mock()
+    response.status_code = 200
+    response.json.return_value = expected_result
+
+    requests.get.return_value = response
+
+    client = miniflux.Client("http://localhost", "username", "password")
     result = client.get_feed_entries(123, direction='asc')
 
     requests.get.assert_called_once_with('http://localhost/v1/feeds/123/entries',
@@ -326,6 +348,70 @@ def test_get_entries():
     requests.get.assert_called_once_with('http://localhost/v1/entries',
                                          auth=('username', 'password'),
                                          params=mock.ANY,
+                                         timeout=mock.ANY)
+
+    assert result == expected_result
+
+
+def test_get_entries_with_before_param():
+    param_value = int(time.time())
+    requests = _get_request_mock()
+    expected_result = []
+
+    response = mock.Mock()
+    response.status_code = 200
+    response.json.return_value = expected_result
+
+    requests.get.return_value = response
+
+    client = miniflux.Client("http://localhost", "username", "password")
+    result = client.get_entries(before=param_value)
+
+    requests.get.assert_called_once_with('http://localhost/v1/entries',
+                                         auth=('username', 'password'),
+                                         params={'before': param_value},
+                                         timeout=mock.ANY)
+
+    assert result == expected_result
+
+
+def test_get_entries_with_starred_param():
+    requests = _get_request_mock()
+    expected_result = []
+
+    response = mock.Mock()
+    response.status_code = 200
+    response.json.return_value = expected_result
+
+    requests.get.return_value = response
+
+    client = miniflux.Client("http://localhost", "username", "password")
+    result = client.get_entries(starred=True)
+
+    requests.get.assert_called_once_with('http://localhost/v1/entries',
+                                         auth=('username', 'password'),
+                                         params={'starred': True},
+                                         timeout=mock.ANY)
+
+    assert result == expected_result
+
+
+def test_get_entries_with_starred_param_at_false():
+    requests = _get_request_mock()
+    expected_result = []
+
+    response = mock.Mock()
+    response.status_code = 200
+    response.json.return_value = expected_result
+
+    requests.get.return_value = response
+
+    client = miniflux.Client("http://localhost", "username", "password")
+    result = client.get_entries(starred=False, after_entry_id=123)
+
+    requests.get.assert_called_once_with('http://localhost/v1/entries',
+                                         auth=('username', 'password'),
+                                         params={'after_entry_id': 123},
                                          timeout=mock.ANY)
 
     assert result == expected_result

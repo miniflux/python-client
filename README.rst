@@ -53,6 +53,12 @@ Usage Example
     # Discover subscriptions from a website
     subscriptions = client.discover("https://example.org")
 
+    # Fetch 10 starred entries
+    entries = client.get_entries(starred=True, limit=10)
+
+    # Fetch last 5 feed entries
+    feed_entries = client.get_feed_entries(123, direction='desc', order='published_at', limit=5)
+
 Author
 ------
 

@@ -30,7 +30,7 @@ def readme():
 
 setup(
     name='miniflux',
-    version='0.0.6',
+    version='0.0.7',
     install_requires=[
         'requests',
     ],

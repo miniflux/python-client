@@ -51,24 +51,8 @@ class Client:
 
         return '{}/v{}{}'.format(self._base_url, self.API_VERSION, path)
 
-    def _get_params(self, status, offset, limit, order, direction):
-        params = {}
-
-        if status:
-            params['status'] = status
-
-        if offset:
-            params['offset'] = offset
-
-        if limit:
-            params['limit'] = limit
-
-        if order:
-            params['order'] = order
-
-        if direction:
-            params['direction'] = direction
-
+    def _get_params(self, **kwargs):
+        params = {k: v for k, v in kwargs.items() if v}
         return params if len(params) > 0 else None
 
     def me(self):
@@ -183,9 +167,9 @@ class Client:
             return response.json()
         raise ClientError(response)
 
-    def get_feed_entries(self, feed_id, status=None, offset=None, limit=None, order=None, direction=None):
+    def get_feed_entries(self, feed_id, **kwargs):
         endpoint = self._get_endpoint('/feeds/{}/entries'.format(feed_id))
-        params = self._get_params(status, offset, limit, order, direction)
+        params = self._get_params(**kwargs)
         response = requests.get(endpoint, auth=self._auth, params=params, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
@@ -198,9 +182,9 @@ class Client:
             return response.json()
         raise ClientError(response)
 
-    def get_entries(self, status=None, offset=None, limit=None, order=None, direction=None):
+    def get_entries(self, **kwargs):
         endpoint = self._get_endpoint('/entries')
-        params = self._get_params(status, offset, limit, order, direction)
+        params = self._get_params(**kwargs)
         response = requests.get(endpoint, auth=self._auth, params=params, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()

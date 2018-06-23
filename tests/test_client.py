@@ -75,7 +75,7 @@ def test_base_url_with_trailing_slash():
     requests.post.assert_called_once_with('http://localhost/v1/discover',
                                           auth=('username', 'password'),
                                           data=mock.ANY,
-                                          timeout=mock.ANY)
+                                          timeout=30)
 
     assert result == expected_result
 
@@ -95,7 +95,7 @@ def test_get_me():
 
     requests.get.assert_called_once_with('http://localhost/v1/me',
                                          auth=('username', 'password'),
-                                         timeout=mock.ANY)
+                                         timeout=30)
 
     assert result == expected_result
 
@@ -130,7 +130,7 @@ def test_discover():
     requests.post.assert_called_once_with('http://localhost/v1/discover',
                                           auth=('username', 'password'),
                                           data=mock.ANY,
-                                          timeout=mock.ANY)
+                                          timeout=30)
 
     _, kwargs = requests.post.call_args
     payload = json.loads(kwargs.get('data'))
@@ -157,7 +157,7 @@ def test_discover_with_credentials():
     requests.post.assert_called_once_with('http://localhost/v1/discover',
                                           auth=('username', 'password'),
                                           data=mock.ANY,
-                                          timeout=mock.ANY)
+                                          timeout=30)
 
     _, kwargs = requests.post.call_args
     payload = json.loads(kwargs.get('data'))
@@ -199,7 +199,7 @@ def test_export():
 
     requests.get.assert_called_once_with('http://localhost/v1/export',
                                          auth=('username', 'password'),
-                                         timeout=mock.ANY)
+                                         timeout=30)
 
     assert result == expected_result
 
@@ -219,7 +219,7 @@ def test_import():
     requests.post.assert_called_once_with('http://localhost/v1/import',
                                           data=input_data,
                                           auth=('username', 'password'),
-                                          timeout=mock.ANY)
+                                          timeout=30)
 
 
 def test_import_failure():
@@ -240,7 +240,7 @@ def test_import_failure():
     requests.post.assert_called_once_with('http://localhost/v1/import',
                                           data=input_data,
                                           auth=('username', 'password'),
-                                          timeout=mock.ANY)
+                                          timeout=30)
 
 
 def test_get_feed():
@@ -258,7 +258,7 @@ def test_get_feed():
 
     requests.get.assert_called_once_with('http://localhost/v1/feeds/123',
                                          auth=('username', 'password'),
-                                         timeout=mock.ANY)
+                                         timeout=30)
 
     assert result == expected_result
 
@@ -279,7 +279,7 @@ def test_create_feed():
     requests.post.assert_called_once_with('http://localhost/v1/feeds',
                                           auth=('username', 'password'),
                                           data=mock.ANY,
-                                          timeout=mock.ANY)
+                                          timeout=30)
 
     _, kwargs = requests.post.call_args
     payload = json.loads(kwargs.get('data'))
@@ -308,7 +308,7 @@ def test_create_feed_with_credentials():
     requests.post.assert_called_once_with('http://localhost/v1/feeds',
                                           auth=('username', 'password'),
                                           data=mock.ANY,
-                                          timeout=mock.ANY)
+                                          timeout=30)
 
     _, kwargs = requests.post.call_args
     payload = json.loads(kwargs.get('data'))
@@ -337,7 +337,7 @@ def test_create_feed_with_crawler_enabled():
     requests.post.assert_called_once_with('http://localhost/v1/feeds',
                                           auth=('username', 'password'),
                                           data=mock.ANY,
-                                          timeout=mock.ANY)
+                                          timeout=30)
 
     _, kwargs = requests.post.call_args
     payload = json.loads(kwargs.get('data'))
@@ -366,7 +366,7 @@ def test_update_feed():
     requests.put.assert_called_once_with('http://localhost/v1/feeds/123',
                                          auth=('username', 'password'),
                                          data=mock.ANY,
-                                         timeout=mock.ANY)
+                                         timeout=30)
 
     _, kwargs = requests.put.call_args
     payload = json.loads(kwargs.get('data'))
@@ -393,7 +393,7 @@ def test_refresh_feed():
 
     requests.put.assert_called_once_with('http://localhost/v1/feeds/123/refresh',
                                          auth=('username', 'password'),
-                                         timeout=mock.ANY)
+                                         timeout=30)
 
     assert result == expected_result
 
@@ -414,7 +414,7 @@ def test_get_feed_entries():
     requests.get.assert_called_once_with('http://localhost/v1/feeds/123/entries',
                                          auth=('username', 'password'),
                                          params=None,
-                                         timeout=mock.ANY)
+                                         timeout=30)
 
     assert result == expected_result
 
@@ -435,7 +435,7 @@ def test_get_feed_entries_with_direction_param():
     requests.get.assert_called_once_with('http://localhost/v1/feeds/123/entries',
                                          auth=('username', 'password'),
                                          params={'direction': 'asc'},
-                                         timeout=mock.ANY)
+                                         timeout=30)
 
     assert result == expected_result
 
@@ -455,7 +455,7 @@ def test_get_entry():
 
     requests.get.assert_called_once_with('http://localhost/v1/entries/123',
                                          auth=('username', 'password'),
-                                         timeout=mock.ANY)
+                                         timeout=30)
 
     assert result == expected_result
 
@@ -476,7 +476,7 @@ def test_get_entries():
     requests.get.assert_called_once_with('http://localhost/v1/entries',
                                          auth=('username', 'password'),
                                          params=mock.ANY,
-                                         timeout=mock.ANY)
+                                         timeout=30)
 
     assert result == expected_result
 
@@ -498,7 +498,7 @@ def test_get_entries_with_before_param():
     requests.get.assert_called_once_with('http://localhost/v1/entries',
                                          auth=('username', 'password'),
                                          params={'before': param_value},
-                                         timeout=mock.ANY)
+                                         timeout=30)
 
     assert result == expected_result
 
@@ -519,7 +519,7 @@ def test_get_entries_with_starred_param():
     requests.get.assert_called_once_with('http://localhost/v1/entries',
                                          auth=('username', 'password'),
                                          params={'starred': True},
-                                         timeout=mock.ANY)
+                                         timeout=30)
 
     assert result == expected_result
 
@@ -540,7 +540,7 @@ def test_get_entries_with_starred_param_at_false():
     requests.get.assert_called_once_with('http://localhost/v1/entries',
                                          auth=('username', 'password'),
                                          params={'after_entry_id': 123},
-                                         timeout=mock.ANY)
+                                         timeout=30)
 
     assert result == expected_result
 
@@ -560,7 +560,7 @@ def test_get_user_by_id():
 
     requests.get.assert_called_once_with('http://localhost/v1/users/123',
                                          auth=('username', 'password'),
-                                         timeout=mock.ANY)
+                                         timeout=30)
 
     assert result == expected_result
 
@@ -580,7 +580,7 @@ def test_get_user_by_username():
 
     requests.get.assert_called_once_with('http://localhost/v1/users/foobar',
                                          auth=('username', 'password'),
-                                         timeout=mock.ANY)
+                                         timeout=30)
 
     assert result == expected_result
 
@@ -601,7 +601,7 @@ def test_update_user():
     requests.put.assert_called_once_with('http://localhost/v1/users/123',
                                          auth=('username', 'password'),
                                          data=mock.ANY,
-                                         timeout=mock.ANY)
+                                         timeout=30)
 
     _, kwargs = requests.put.call_args
     payload = json.loads(kwargs.get('data'))

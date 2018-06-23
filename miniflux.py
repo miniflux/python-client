@@ -38,7 +38,7 @@ class ClientError(Exception):
 class Client:
     API_VERSION = 1
 
-    def __init__(self, base_url, username, password, timeout=None):
+    def __init__(self, base_url, username, password, timeout=30):
         self._base_url = base_url
         self._username = username
         self._password = password

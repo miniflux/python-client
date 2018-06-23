@@ -55,6 +55,9 @@ class Client:
         params = {k: v for k, v in kwargs.items() if v}
         return params if len(params) > 0 else None
 
+    def _get_modification_params(self, **kwargs):
+        return {k: v for k, v in kwargs.items() if v is not None}
+
     def me(self):
         endpoint = self._get_endpoint('/me')
         response = requests.get(endpoint, auth=self._auth, timeout=self._timeout)
@@ -79,9 +82,9 @@ class Client:
             return response.json()
         raise ClientError(response)
 
-    def discover(self, website_url):
+    def discover(self, website_url, username='', password=''):
         endpoint = self._get_endpoint('/discover')
-        data = {'url': website_url}
+        data = {'url': website_url, 'username': username, 'password': password}
         response = requests.post(endpoint, auth=self._auth, data=json.dumps(data), timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
@@ -108,40 +111,24 @@ class Client:
             return response.json()
         raise ClientError(response)
 
-    def create_feed(self, feed_url, category_id):
+    def create_feed(self, feed_url, category_id, username='', password='', crawler=False):
         endpoint = self._get_endpoint('/feeds')
-        data = {'feed_url': feed_url, 'category_id': category_id}
+        data = {
+            'feed_url': feed_url,
+            'category_id': category_id,
+            'username': username,
+            'password': password,
+            'crawler': crawler,
+        }
+
         response = requests.post(endpoint, auth=self._auth, data=json.dumps(data), timeout=self._timeout)
         if response.status_code == 201:
             return response.json()['feed_id']
         raise ClientError(response)
 
-    def update_feed(self, feed_id, title=None, feed_url=None, site_url=None, scraper_rules=None, rewrite_rules=None,
-                    crawler=None, category_id=None):
+    def update_feed(self, feed_id, **kwargs):
         endpoint = self._get_endpoint('/feeds/{}'.format(feed_id))
-        data = {}
-
-        if title:
-            data['title'] = title
-
-        if feed_url:
-            data['feed_url'] = feed_url
-
-        if site_url:
-            data['site_url'] = site_url
-
-        if scraper_rules:
-            data['scraper_rules'] = scraper_rules
-
-        if rewrite_rules:
-            data['rewrite_rules'] = rewrite_rules
-
-        if crawler is not None:
-            data['crawler'] = crawler
-
-        if category_id:
-            data['category'] = {'id': category_id}
-
+        data = self._get_modification_params(**kwargs)
         response = requests.put(endpoint, auth=self._auth, data=json.dumps(data), timeout=self._timeout)
         if response.status_code == 201:
             return response.json()
@@ -262,29 +249,9 @@ class Client:
             return response.json()
         raise ClientError(response)
 
-    def update_user(self, user_id, username=None, password=None, theme=None, language=None,
-                    timezone=None, entry_direction=None):
+    def update_user(self, user_id, **kwargs):
         endpoint = self._get_endpoint('/users/{}'.format(user_id))
-        data = {}
-
-        if username:
-            data['username'] = username
-
-        if password:
-            data['password'] = password
-
-        if theme:
-            data['theme'] = theme
-
-        if language:
-            data['language'] = language
-
-        if timezone:
-            data['timezone'] = timezone
-
-        if entry_direction:
-            data['entry_direction'] = entry_direction
-
+        data = self._get_modification_params(**kwargs)
         response = requests.put(endpoint, auth=self._auth, data=json.dumps(data), timeout=self._timeout)
         if response.status_code == 201:
             return response.json()

@@ -59,6 +59,9 @@ Usage Example
     # Fetch last 5 feed entries
     feed_entries = client.get_feed_entries(123, direction='desc', order='published_at', limit=5)
 
+    # Update a feed category
+    client.update_Feed(123, category_id=456)
+
 Author
 ------
 

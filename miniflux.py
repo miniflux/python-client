@@ -111,15 +111,10 @@ class Client:
             return response.json()
         raise ClientError(response)
 
-    def create_feed(self, feed_url, category_id, username='', password='', crawler=False):
+    def create_feed(self, feed_url, category_id, **kwargs):
         endpoint = self._get_endpoint('/feeds')
-        data = {
-            'feed_url': feed_url,
-            'category_id': category_id,
-            'username': username,
-            'password': password,
-            'crawler': crawler,
-        }
+        data = dict(feed_url=feed_url, category_id=category_id)
+        data.update(kwargs)
 
         response = requests.post(endpoint, auth=self._auth, data=json.dumps(data), timeout=self._timeout)
         if response.status_code == 201:

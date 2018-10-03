@@ -53,6 +53,9 @@ Usage Example
     # Discover subscriptions from a website
     subscriptions = client.discover("https://example.org")
 
+    # Create a new feed, with a personalized user agent and with the crawler enabled
+    feed_id = client.create_feed("http://example.org/feed.xml", 42, crawler=True, user_agent="GoogleBot")
+
     # Fetch 10 starred entries
     entries = client.get_entries(starred=True, limit=10)
 

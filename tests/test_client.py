@@ -286,9 +286,9 @@ def test_create_feed():
 
     assert payload.get('feed_url') == "http://example.org/feed"
     assert payload.get('category_id') == 123
-    assert payload.get('username') == ""
-    assert payload.get('password') == ""
-    assert payload.get('crawler') is False
+    assert payload.get('username') is None
+    assert payload.get('password') is None
+    assert payload.get('crawler') is None
     assert result == expected_result['feed_id']
 
 
@@ -303,7 +303,7 @@ def test_create_feed_with_credentials():
     requests.post.return_value = response
 
     client = miniflux.Client("http://localhost", "username", "password")
-    result = client.create_feed("http://example.org/feed", 123, "foobar", "secret")
+    result = client.create_feed("http://example.org/feed", 123, username="foobar", password="secret")
 
     requests.post.assert_called_once_with('http://localhost/v1/feeds',
                                           auth=('username', 'password'),
@@ -317,7 +317,7 @@ def test_create_feed_with_credentials():
     assert payload.get('category_id') == 123
     assert payload.get('username') == "foobar"
     assert payload.get('password') == "secret"
-    assert payload.get('crawler') is False
+    assert payload.get('crawler') is None
     assert result == expected_result['feed_id']
 
 
@@ -344,9 +344,39 @@ def test_create_feed_with_crawler_enabled():
 
     assert payload.get('feed_url') == "http://example.org/feed"
     assert payload.get('category_id') == 123
-    assert payload.get('username') == ""
-    assert payload.get('password') == ""
+    assert payload.get('username') is None
+    assert payload.get('password') is None
     assert payload.get('crawler') is True
+    assert result == expected_result['feed_id']
+
+
+def test_create_feed_with_custom_user_agent_and_crawler_disabled():
+    requests = _get_request_mock()
+    expected_result = {"feed_id": 42}
+
+    response = mock.Mock()
+    response.status_code = 201
+    response.json.return_value = expected_result
+
+    requests.post.return_value = response
+
+    client = miniflux.Client("http://localhost", "username", "password")
+    result = client.create_feed("http://example.org/feed", 123, crawler=False, user_agent="GoogleBot")
+
+    requests.post.assert_called_once_with('http://localhost/v1/feeds',
+                                          auth=('username', 'password'),
+                                          data=mock.ANY,
+                                          timeout=30)
+
+    _, kwargs = requests.post.call_args
+    payload = json.loads(kwargs.get('data'))
+
+    assert payload.get('feed_url') == "http://example.org/feed"
+    assert payload.get('category_id') == 123
+    assert payload.get('username') is None
+    assert payload.get('password') is None
+    assert payload.get('crawler') is False
+    assert payload.get('user_agent') == "GoogleBot"
     assert result == expected_result['feed_id']
 
 

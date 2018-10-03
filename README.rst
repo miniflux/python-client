@@ -8,7 +8,7 @@ Miniflux Python API Client
     :target: https://badge.fury.io/py/miniflux
 
 .. image:: https://readthedocs.org/projects/miniflux/badge/?version=latest
-    :target: https://docs.miniflux.net/
+    :target: https://docs.miniflux.app/
     :alt: Documentation Status
 
 Client library for Miniflux REST API.

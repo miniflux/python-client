@@ -82,9 +82,11 @@ class Client:
             return response.json()
         raise ClientError(response)
 
-    def discover(self, website_url, username='', password=''):
+    def discover(self, website_url, **kwargs):
         endpoint = self._get_endpoint('/discover')
-        data = {'url': website_url, 'username': username, 'password': password}
+        data = dict(url=website_url)
+        data.update(kwargs)
+
         response = requests.post(endpoint, auth=self._auth, data=json.dumps(data), timeout=self._timeout)
         if response.status_code == 200:
             return response.json()

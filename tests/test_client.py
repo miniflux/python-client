@@ -136,8 +136,8 @@ def test_discover():
     payload = json.loads(kwargs.get('data'))
 
     assert payload.get('url') == "http://example.org/"
-    assert payload.get('username') == ""
-    assert payload.get('password') == ""
+    assert payload.get('username') is None
+    assert payload.get('password') is None
     assert result == expected_result
 
 
@@ -152,7 +152,7 @@ def test_discover_with_credentials():
     requests.post.return_value = response
 
     client = miniflux.Client("http://localhost", "username", "password")
-    result = client.discover("http://example.org/", "foobar", "secret")
+    result = client.discover("http://example.org/", username="foobar", password="secret", user_agent="Bot")
 
     requests.post.assert_called_once_with('http://localhost/v1/discover',
                                           auth=('username', 'password'),
@@ -165,6 +165,7 @@ def test_discover_with_credentials():
     assert payload.get('url') == "http://example.org/"
     assert payload.get('username') == "foobar"
     assert payload.get('password') == "secret"
+    assert payload.get('user_agent') == "Bot"
     assert result == expected_result
 
 

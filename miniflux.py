@@ -31,8 +31,10 @@ class ClientError(Exception):
 
     def get_error_reason(self):
         result = self._response.json()
-        default_reason = 'status_code={}'.format(self.status_code)
-        return result.get('error_message', default_reason) if isinstance(result, dict) else default_reason
+        default_reason = f"status_code={self.status_code}"
+        if isinstance(result, dict):
+            return result.get("error_message", default_reason)
+        return default_reason
 
 
 class Client:
@@ -46,10 +48,10 @@ class Client:
         self._auth = (self._username, self._password)
 
     def _get_endpoint(self, path):
-        if len(self._base_url) > 0 and self._base_url[-1:] == '/':
+        if len(self._base_url) > 0 and self._base_url[-1:] == "/":
             self._base_url = self._base_url[:-1]
 
-        return '{}/v{}{}'.format(self._base_url, self.API_VERSION, path)
+        return f"{self._base_url}/v{self.API_VERSION}{path}"
 
     def _get_params(self, **kwargs):
         params = {k: v for k, v in kwargs.items() if v}
@@ -59,7 +61,7 @@ class Client:
         return {k: v for k, v in kwargs.items() if v is not None}
 
     def me(self):
-        endpoint = self._get_endpoint('/me')
+        endpoint = self._get_endpoint("/me")
         response = requests.get(endpoint, auth=self._auth, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
@@ -69,157 +71,184 @@ class Client:
         return self.export_feeds()
 
     def export_feeds(self):
-        endpoint = self._get_endpoint('/export')
+        endpoint = self._get_endpoint("/export")
         response = requests.get(endpoint, auth=self._auth, timeout=self._timeout)
         if response.status_code == 200:
             return response.text
         raise ClientError(response)
 
     def import_feeds(self, opml):
-        endpoint = self._get_endpoint('/import')
-        response = requests.post(endpoint, data=opml, auth=self._auth, timeout=self._timeout)
+        endpoint = self._get_endpoint("/import")
+        response = requests.post(endpoint,
+                                 data=opml,
+                                 auth=self._auth,
+                                 timeout=self._timeout)
         if response.status_code == 201:
             return response.json()
         raise ClientError(response)
 
     def discover(self, website_url, **kwargs):
-        endpoint = self._get_endpoint('/discover')
+        endpoint = self._get_endpoint("/discover")
         data = dict(url=website_url)
         data.update(kwargs)
 
-        response = requests.post(endpoint, auth=self._auth, data=json.dumps(data), timeout=self._timeout)
+        response = requests.post(endpoint,
+                                 auth=self._auth,
+                                 data=json.dumps(data),
+                                 timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         raise ClientError(response)
 
     def get_feeds(self):
-        endpoint = self._get_endpoint('/feeds')
+        endpoint = self._get_endpoint("/feeds")
         response = requests.get(endpoint, auth=self._auth, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         raise ClientError(response)
 
     def get_feed(self, feed_id):
-        endpoint = self._get_endpoint('/feeds/{}'.format(feed_id))
+        endpoint = self._get_endpoint(f"/feeds/{feed_id}")
         response = requests.get(endpoint, auth=self._auth, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         raise ClientError(response)
 
     def get_feed_icon(self, feed_id):
-        endpoint = self._get_endpoint('/feeds/{}/icon'.format(feed_id))
+        endpoint = self._get_endpoint(f"/feeds/{feed_id}/icon")
         response = requests.get(endpoint, auth=self._auth, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         raise ClientError(response)
 
     def create_feed(self, feed_url, category_id, **kwargs):
-        endpoint = self._get_endpoint('/feeds')
+        endpoint = self._get_endpoint("/feeds")
         data = dict(feed_url=feed_url, category_id=category_id)
         data.update(kwargs)
 
-        response = requests.post(endpoint, auth=self._auth, data=json.dumps(data), timeout=self._timeout)
+        response = requests.post(endpoint,
+                                 auth=self._auth,
+                                 data=json.dumps(data),
+                                 timeout=self._timeout)
         if response.status_code == 201:
-            return response.json()['feed_id']
+            return response.json()["feed_id"]
         raise ClientError(response)
 
     def update_feed(self, feed_id, **kwargs):
-        endpoint = self._get_endpoint('/feeds/{}'.format(feed_id))
+        endpoint = self._get_endpoint(f"/feeds/{feed_id}")
         data = self._get_modification_params(**kwargs)
-        response = requests.put(endpoint, auth=self._auth, data=json.dumps(data), timeout=self._timeout)
+        response = requests.put(endpoint,
+                                auth=self._auth,
+                                data=json.dumps(data),
+                                timeout=self._timeout)
         if response.status_code == 201:
             return response.json()
         raise ClientError(response)
 
     def refresh_feed(self, feed_id):
-        endpoint = self._get_endpoint('/feeds/{}/refresh'.format(feed_id))
+        endpoint = self._get_endpoint(f"/feeds/{feed_id}/refresh")
         response = requests.put(endpoint, auth=self._auth, timeout=self._timeout)
         if response.status_code >= 400:
             raise ClientError(response)
         return True
 
     def delete_feed(self, feed_id):
-        endpoint = self._get_endpoint('/feeds/{}'.format(feed_id))
+        endpoint = self._get_endpoint(f"/feeds/{feed_id}")
         response = requests.delete(endpoint, auth=self._auth, timeout=self._timeout)
         if response.status_code != 204:
             raise ClientError(response)
 
     def get_feed_entry(self, feed_id, entry_id):
-        endpoint = self._get_endpoint('/feeds/{}/entries/{}'.format(feed_id, entry_id))
+        endpoint = self._get_endpoint(f"/feeds/{feed_id}/entries/{entry_id}")
         response = requests.get(endpoint, auth=self._auth, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         raise ClientError(response)
 
     def get_feed_entries(self, feed_id, **kwargs):
-        endpoint = self._get_endpoint('/feeds/{}/entries'.format(feed_id))
+        endpoint = self._get_endpoint(f"/feeds/{feed_id}/entries")
         params = self._get_params(**kwargs)
-        response = requests.get(endpoint, auth=self._auth, params=params, timeout=self._timeout)
+        response = requests.get(endpoint,
+                                auth=self._auth,
+                                params=params,
+                                timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         raise ClientError(response)
 
     def get_entry(self, entry_id):
-        endpoint = self._get_endpoint('/entries/{}'.format(entry_id))
+        endpoint = self._get_endpoint(f"/entries/{entry_id}")
         response = requests.get(endpoint, auth=self._auth, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         raise ClientError(response)
 
     def get_entries(self, **kwargs):
-        endpoint = self._get_endpoint('/entries')
+        endpoint = self._get_endpoint("/entries")
         params = self._get_params(**kwargs)
-        response = requests.get(endpoint, auth=self._auth, params=params, timeout=self._timeout)
+        response = requests.get(endpoint,
+                                auth=self._auth,
+                                params=params,
+                                timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         raise ClientError(response)
 
     def update_entries(self, entry_ids, status):
-        endpoint = self._get_endpoint('/entries')
-        data = {'entry_ids': entry_ids, 'status': status}
-        response = requests.put(endpoint, auth=self._auth, data=json.dumps(data), timeout=self._timeout)
+        endpoint = self._get_endpoint("/entries")
+        data = {"entry_ids": entry_ids, "status": status}
+        response = requests.put(endpoint,
+                                auth=self._auth,
+                                data=json.dumps(data),
+                                timeout=self._timeout)
         if response.status_code >= 400:
             raise ClientError(response)
         return True
 
     def toggle_bookmark(self, entry_id):
-        endpoint = self._get_endpoint('/entries/{}/bookmark'.format(entry_id))
+        endpoint = self._get_endpoint(f"/entries/{entry_id}/bookmark")
         response = requests.put(endpoint, auth=self._auth, timeout=self._timeout)
         if response.status_code >= 400:
             raise ClientError(response)
         return True
 
     def get_categories(self):
-        endpoint = self._get_endpoint('/categories')
+        endpoint = self._get_endpoint("/categories")
         response = requests.get(endpoint, auth=self._auth, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         raise ClientError(response)
 
     def create_category(self, title):
-        endpoint = self._get_endpoint('/categories')
-        data = {'title': title}
-        response = requests.post(endpoint, auth=self._auth, data=json.dumps(data), timeout=self._timeout)
+        endpoint = self._get_endpoint(f"/categories")
+        data = {"title": title}
+        response = requests.post(endpoint,
+                                 auth=self._auth,
+                                 data=json.dumps(data),
+                                 timeout=self._timeout)
         if response.status_code == 201:
             return response.json()
         raise ClientError(response)
 
     def update_category(self, category_id, title):
-        endpoint = self._get_endpoint('/categories/{}'.format(category_id))
-        data = {'id': category_id, 'title': title}
-        response = requests.put(endpoint, auth=self._auth, data=json.dumps(data), timeout=self._timeout)
+        endpoint = self._get_endpoint(f"/categories/{category_id}")
+        data = {"id": category_id, "title": title}
+        response = requests.put(endpoint,
+                                auth=self._auth,
+                                data=json.dumps(data),
+                                timeout=self._timeout)
         if response.status_code == 201:
             return response.json()
         raise ClientError(response)
 
     def delete_category(self, category_id):
-        endpoint = self._get_endpoint('/categories/{}'.format(category_id))
+        endpoint = self._get_endpoint(f"/categories/{category_id}")
         response = requests.delete(endpoint, auth=self._auth, timeout=self._timeout)
         if response.status_code != 204:
             raise ClientError(response)
 
     def get_users(self):
-        endpoint = self._get_endpoint('/users')
+        endpoint = self._get_endpoint("/users")
         response = requests.get(endpoint, auth=self._auth, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
@@ -232,30 +261,36 @@ class Client:
         return self._get_user(username)
 
     def _get_user(self, user_id_or_username):
-        endpoint = self._get_endpoint('/users/{}'.format(user_id_or_username))
+        endpoint = self._get_endpoint(f"/users/{user_id_or_username}")
         response = requests.get(endpoint, auth=self._auth, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         raise ClientError(response)
 
     def create_user(self, username, password, is_admin):
-        endpoint = self._get_endpoint('/users')
-        data = {'username': username, 'password': password, 'is_admin': is_admin}
-        response = requests.post(endpoint, auth=self._auth, data=json.dumps(data), timeout=self._timeout)
+        endpoint = self._get_endpoint("/users")
+        data = {"username": username, "password": password, "is_admin": is_admin}
+        response = requests.post(endpoint,
+                                 auth=self._auth,
+                                 data=json.dumps(data),
+                                 timeout=self._timeout)
         if response.status_code == 201:
             return response.json()
         raise ClientError(response)
 
     def update_user(self, user_id, **kwargs):
-        endpoint = self._get_endpoint('/users/{}'.format(user_id))
+        endpoint = self._get_endpoint(f"/users/{user_id}")
         data = self._get_modification_params(**kwargs)
-        response = requests.put(endpoint, auth=self._auth, data=json.dumps(data), timeout=self._timeout)
+        response = requests.put(endpoint,
+                                auth=self._auth,
+                                data=json.dumps(data),
+                                timeout=self._timeout)
         if response.status_code == 201:
             return response.json()
         raise ClientError(response)
 
     def delete_user(self, user_id):
-        endpoint = self._get_endpoint('/users/{}'.format(user_id))
+        endpoint = self._get_endpoint(f"/users/{user_id}")
         response = requests.delete(endpoint, auth=self._auth, timeout=self._timeout)
         if response.status_code != 204:
             raise ClientError(response)

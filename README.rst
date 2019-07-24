@@ -7,17 +7,13 @@ Miniflux Python API Client
 .. image:: https://badge.fury.io/py/miniflux.svg
     :target: https://badge.fury.io/py/miniflux
 
-.. image:: https://readthedocs.org/projects/miniflux/badge/?version=latest
-    :target: https://docs.miniflux.app/
-    :alt: Documentation Status
-
-Client library for Miniflux REST API.
+Python client library for Miniflux API.
 
 Dependencies
 ------------
 
 - Miniflux >= 2.x
-- Python >= 3.4
+- Python >= 3.6
 - requests
 
 Installation

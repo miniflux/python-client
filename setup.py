@@ -30,11 +30,11 @@ def readme():
 
 setup(
     name='miniflux',
-    version='0.0.9',
+    version='0.0.10',
     install_requires=[
         'requests',
     ],
-    description='Client library for Miniflux REST API',
+    description='Client library for Miniflux API',
     long_description=readme(),
     keywords='rss atom rdf jsonfeed feed miniflux',
     url='https://github.com/miniflux/python-client',

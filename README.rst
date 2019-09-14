@@ -1,9 +1,6 @@
 Miniflux Python API Client
 ==========================
 
-.. image:: https://travis-ci.org/miniflux/python-client.svg?branch=master
-    :target: https://travis-ci.org/miniflux/python-client
-
 .. image:: https://badge.fury.io/py/miniflux.svg
     :target: https://badge.fury.io/py/miniflux
 

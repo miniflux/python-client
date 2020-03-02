@@ -422,6 +422,27 @@ def test_update_feed():
     assert result == expected_result
 
 
+def test_refresh_all_feeds():
+    requests = _get_request_mock()
+    expected_result = True
+
+    response = mock.Mock()
+    response.status_code = 201
+    response.json.return_value = expected_result
+
+    requests.put.return_value = response
+
+    client = miniflux.Client("http://localhost", "username", "password")
+    result = client.refresh_all_feeds()
+
+    requests.put.assert_called_once_with('http://localhost/v1/feeds/refresh',
+                                         headers=None,
+                                         auth=('username', 'password'),
+                                         timeout=30)
+
+    assert result == expected_result
+
+
 def test_refresh_feed():
     requests = _get_request_mock()
     expected_result = True

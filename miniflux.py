@@ -160,6 +160,14 @@ class Client:
             return response.json()
         raise ClientError(response)
 
+    def refresh_all_feeds(self):
+        endpoint = self._get_endpoint(f"/feeds/refresh")
+        response = requests.put(endpoint, headers=self._headers,
+                                auth=self._auth, timeout=self._timeout)
+        if response.status_code >= 400:
+            raise ClientError(response)
+        return True
+
     def refresh_feed(self, feed_id: int):
         endpoint = self._get_endpoint(f"/feeds/{feed_id}/refresh")
         response = requests.put(endpoint, headers=self._headers,

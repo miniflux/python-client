@@ -73,6 +73,7 @@ def test_base_url_with_trailing_slash():
     result = client.discover("http://example.org/")
 
     requests.post.assert_called_once_with('http://localhost/v1/discover',
+                                          headers=None,
                                           auth=('username', 'password'),
                                           data=mock.ANY,
                                           timeout=30)
@@ -94,6 +95,7 @@ def test_get_me():
     result = client.me()
 
     requests.get.assert_called_once_with('http://localhost/v1/me',
+                                         headers=None,
                                          auth=('username', 'password'),
                                          timeout=30)
 
@@ -128,6 +130,7 @@ def test_discover():
     result = client.discover("http://example.org/")
 
     requests.post.assert_called_once_with('http://localhost/v1/discover',
+                                          headers=None,
                                           auth=('username', 'password'),
                                           data=mock.ANY,
                                           timeout=30)
@@ -155,6 +158,7 @@ def test_discover_with_credentials():
     result = client.discover("http://example.org/", username="foobar", password="secret", user_agent="Bot")
 
     requests.post.assert_called_once_with('http://localhost/v1/discover',
+                                          headers=None,
                                           auth=('username', 'password'),
                                           data=mock.ANY,
                                           timeout=30)
@@ -199,6 +203,7 @@ def test_export():
     result = client.export()
 
     requests.get.assert_called_once_with('http://localhost/v1/export',
+                                         headers=None,
                                          auth=('username', 'password'),
                                          timeout=30)
 
@@ -218,6 +223,7 @@ def test_import():
     client.import_feeds(input_data)
 
     requests.post.assert_called_once_with('http://localhost/v1/import',
+                                          headers=None,
                                           data=input_data,
                                           auth=('username', 'password'),
                                           timeout=30)
@@ -239,6 +245,7 @@ def test_import_failure():
         client.import_feeds(input_data)
 
     requests.post.assert_called_once_with('http://localhost/v1/import',
+                                          headers=None,
                                           data=input_data,
                                           auth=('username', 'password'),
                                           timeout=30)
@@ -258,6 +265,7 @@ def test_get_feed():
     result = client.get_feed(123)
 
     requests.get.assert_called_once_with('http://localhost/v1/feeds/123',
+                                         headers=None,
                                          auth=('username', 'password'),
                                          timeout=30)
 
@@ -278,6 +286,7 @@ def test_create_feed():
     result = client.create_feed("http://example.org/feed", 123)
 
     requests.post.assert_called_once_with('http://localhost/v1/feeds',
+                                          headers=None,
                                           auth=('username', 'password'),
                                           data=mock.ANY,
                                           timeout=30)
@@ -307,6 +316,7 @@ def test_create_feed_with_credentials():
     result = client.create_feed("http://example.org/feed", 123, username="foobar", password="secret")
 
     requests.post.assert_called_once_with('http://localhost/v1/feeds',
+                                          headers=None,
                                           auth=('username', 'password'),
                                           data=mock.ANY,
                                           timeout=30)
@@ -336,6 +346,7 @@ def test_create_feed_with_crawler_enabled():
     result = client.create_feed("http://example.org/feed", 123, crawler=True)
 
     requests.post.assert_called_once_with('http://localhost/v1/feeds',
+                                          headers=None,
                                           auth=('username', 'password'),
                                           data=mock.ANY,
                                           timeout=30)
@@ -365,6 +376,7 @@ def test_create_feed_with_custom_user_agent_and_crawler_disabled():
     result = client.create_feed("http://example.org/feed", 123, crawler=False, user_agent="GoogleBot")
 
     requests.post.assert_called_once_with('http://localhost/v1/feeds',
+                                          headers=None,
                                           auth=('username', 'password'),
                                           data=mock.ANY,
                                           timeout=30)
@@ -395,6 +407,7 @@ def test_update_feed():
     result = client.update_feed(123, crawler=True, username="test")
 
     requests.put.assert_called_once_with('http://localhost/v1/feeds/123',
+                                         headers=None,
                                          auth=('username', 'password'),
                                          data=mock.ANY,
                                          timeout=30)
@@ -423,6 +436,7 @@ def test_refresh_feed():
     result = client.refresh_feed(123)
 
     requests.put.assert_called_once_with('http://localhost/v1/feeds/123/refresh',
+                                         headers=None,
                                          auth=('username', 'password'),
                                          timeout=30)
 
@@ -443,6 +457,7 @@ def test_get_feed_entries():
     result = client.get_feed_entries(123)
 
     requests.get.assert_called_once_with('http://localhost/v1/feeds/123/entries',
+                                         headers=None,
                                          auth=('username', 'password'),
                                          params=None,
                                          timeout=30)
@@ -464,6 +479,7 @@ def test_get_feed_entries_with_direction_param():
     result = client.get_feed_entries(123, direction='asc')
 
     requests.get.assert_called_once_with('http://localhost/v1/feeds/123/entries',
+                                         headers=None,
                                          auth=('username', 'password'),
                                          params={'direction': 'asc'},
                                          timeout=30)
@@ -485,6 +501,7 @@ def test_get_entry():
     result = client.get_entry(123)
 
     requests.get.assert_called_once_with('http://localhost/v1/entries/123',
+                                         headers=None,
                                          auth=('username', 'password'),
                                          timeout=30)
 
@@ -505,6 +522,7 @@ def test_get_entries():
     result = client.get_entries(status='unread', limit=10, offset=5)
 
     requests.get.assert_called_once_with('http://localhost/v1/entries',
+                                         headers=None,
                                          auth=('username', 'password'),
                                          params=mock.ANY,
                                          timeout=30)
@@ -527,6 +545,7 @@ def test_get_entries_with_before_param():
     result = client.get_entries(before=param_value)
 
     requests.get.assert_called_once_with('http://localhost/v1/entries',
+                                         headers=None,
                                          auth=('username', 'password'),
                                          params={'before': param_value},
                                          timeout=30)
@@ -548,6 +567,7 @@ def test_get_entries_with_starred_param():
     result = client.get_entries(starred=True)
 
     requests.get.assert_called_once_with('http://localhost/v1/entries',
+                                         headers=None,
                                          auth=('username', 'password'),
                                          params={'starred': True},
                                          timeout=30)
@@ -569,6 +589,7 @@ def test_get_entries_with_starred_param_at_false():
     result = client.get_entries(starred=False, after_entry_id=123)
 
     requests.get.assert_called_once_with('http://localhost/v1/entries',
+                                         headers=None,
                                          auth=('username', 'password'),
                                          params={'after_entry_id': 123},
                                          timeout=30)
@@ -590,6 +611,7 @@ def test_get_user_by_id():
     result = client.get_user_by_id(123)
 
     requests.get.assert_called_once_with('http://localhost/v1/users/123',
+                                         headers=None,
                                          auth=('username', 'password'),
                                          timeout=30)
 
@@ -610,6 +632,7 @@ def test_get_user_by_username():
     result = client.get_user_by_username("foobar")
 
     requests.get.assert_called_once_with('http://localhost/v1/users/foobar',
+                                         headers=None,
                                          auth=('username', 'password'),
                                          timeout=30)
 
@@ -630,6 +653,7 @@ def test_update_user():
     result = client.update_user(123, theme="black", language="fr_FR")
 
     requests.put.assert_called_once_with('http://localhost/v1/users/123',
+                                         headers=None,
                                          auth=('username', 'password'),
                                          data=mock.ANY,
                                          timeout=30)
@@ -648,13 +672,32 @@ def test_timeout():
     requests = _get_request_mock()
     requests.get.side_effect = Timeout()
 
-    client = miniflux.Client("http://localhost", "username", "password", 1)
+    client = miniflux.Client("http://localhost", "username", "password", 1.0)
     with pytest.raises(Timeout):
         client.export()
 
     requests.get.assert_called_once_with('http://localhost/v1/export',
+                                         headers=None,
                                          auth=('username', 'password'),
-                                         timeout=1)
+                                         timeout=1.0)
+
+
+def test_api_key_auth():
+    requests = _get_request_mock()
+
+    response = mock.Mock()
+    response.status_code = 200
+    response.json.return_value = {}
+
+    requests.get.return_value = response
+
+    client = miniflux.Client("http://localhost", api_key="secret")
+    client.export()
+
+    requests.get.assert_called_once_with('http://localhost/v1/export',
+                                         headers={'X-Auth-Token': 'secret'},
+                                         auth=None,
+                                         timeout=30.0)
 
 
 def _get_request_mock():

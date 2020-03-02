@@ -30,7 +30,7 @@ def readme():
 
 setup(
     name='miniflux',
-    version='0.0.10',
+    version='0.0.11',
     install_requires=[
         'requests',
     ],
@@ -43,12 +43,13 @@ setup(
     license='MIT',
     py_modules=['miniflux'],
     python_requires='>=3.6',
-    classifiers=(
+    zip_safe=True,
+    classifiers=[
         'Intended Audience :: Developers',
         'Natural Language :: English',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-    ),
+    ],
 )

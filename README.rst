@@ -35,7 +35,11 @@ Usage Example
 
     import miniflux
 
+    # Creating a client using username / password authentication
     client = miniflux.Client("https://miniflux.example.org", "my_username", "my_secret_password")
+
+    # Use an API Key (preferred method)
+    client = miniflux.Client("https://miniflux.example.org", api_key="My secret API token")
 
     # Get all feeds
     feeds = client.get_feeds()

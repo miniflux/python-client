@@ -1,4 +1,4 @@
-name: CI Workflow
+name: CI
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
     - master
 
 jobs:
-  build:
+  tests:
 
     runs-on: ${{ matrix.os }}
     strategy:

@@ -66,6 +66,13 @@ class Client:
     def _get_modification_params(self, **kwargs):
         return {k: v for k, v in kwargs.items() if v is not None}
 
+    def get_version(self):
+        endpoint = f"{self._base_url}/version"
+        response = requests.get(endpoint, timeout=self._timeout)
+        if response.status_code == 200:
+            return response.text
+        raise ClientError(response)
+
     def me(self):
         endpoint = self._get_endpoint("/me")
         response = requests.get(endpoint, headers=self._headers,

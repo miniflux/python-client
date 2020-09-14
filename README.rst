@@ -59,11 +59,17 @@ Usage Example
     # Fetch last 5 feed entries
     feed_entries = client.get_feed_entries(123, direction='desc', order='published_at', limit=5)
 
+    # Fetch entries that belongs to a category with status unread and read
+    entries = client.get_entries(category_id=456, status=['read', 'unread'])
+
     # Update a feed category
     client.update_feed(123, category_id=456)
 
     # OPML Export
-    opml = client.export()
+    opml = client.export_feeds()
+
+    # Get application version
+    client.get_version()
 
 Author
 ------

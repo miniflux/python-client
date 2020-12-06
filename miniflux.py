@@ -168,7 +168,7 @@ class Client:
         raise ClientError(response)
 
     def refresh_all_feeds(self) -> bool:
-        endpoint = self._get_endpoint(f"/feeds/refresh")
+        endpoint = self._get_endpoint("/feeds/refresh")
         response = requests.put(endpoint, headers=self._headers,
                                 auth=self._auth, timeout=self._timeout)
         if response.status_code >= 400:
@@ -266,7 +266,7 @@ class Client:
         raise ClientError(response)
 
     def create_category(self, title: str) -> Dict:
-        endpoint = self._get_endpoint(f"/categories")
+        endpoint = self._get_endpoint("/categories")
         data = {"title": title}
         response = requests.post(endpoint,
                                  headers=self._headers,

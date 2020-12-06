@@ -44,6 +44,7 @@ setup(
     py_modules=['miniflux'],
     python_requires='>=3.6',
     zip_safe=True,
+    test_suite='tests',
     classifiers=[
         'Intended Audience :: Developers',
         'Natural Language :: English',
@@ -52,5 +53,6 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
     ],
 )

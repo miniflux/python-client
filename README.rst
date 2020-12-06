@@ -25,8 +25,7 @@ Running Tests
 
 .. code:: bash
 
-    pip install tox
-    tox
+    python setup.py test
 
 Usage Example
 -------------

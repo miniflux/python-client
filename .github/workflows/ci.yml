@@ -6,7 +6,7 @@ on:
     - master
 
 jobs:
-  tests:
+  unit-tests:
 
     runs-on: ${{ matrix.os }}
     strategy:
@@ -28,4 +28,4 @@ jobs:
         python setup.py install
     - name: Tests
       run: |
-        py.test --pep8
+        py.test

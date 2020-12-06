@@ -508,6 +508,57 @@ def test_get_feed_entries_with_direction_param():
     assert result == expected_result
 
 
+def test_mark_feed_as_read():
+    requests = _get_request_mock()
+
+    response = mock.Mock()
+    response.status_code = 204
+
+    requests.put.return_value = response
+
+    client = miniflux.Client("http://localhost", api_key="secret")
+    client.mark_feed_entries_as_read(123)
+
+    requests.put.assert_called_once_with('http://localhost/v1/feeds/123/mark-all-as-read',
+                                         headers={'X-Auth-Token': 'secret'},
+                                         auth=None,
+                                         timeout=30)
+
+
+def test_mark_category_entries_as_read():
+    requests = _get_request_mock()
+
+    response = mock.Mock()
+    response.status_code = 204
+
+    requests.put.return_value = response
+
+    client = miniflux.Client("http://localhost", api_key="secret")
+    client.mark_category_entries_as_read(123)
+
+    requests.put.assert_called_once_with('http://localhost/v1/categories/123/mark-all-as-read',
+                                         headers={'X-Auth-Token': 'secret'},
+                                         auth=None,
+                                         timeout=30)
+
+
+def test_mark_user_entries_as_read():
+    requests = _get_request_mock()
+
+    response = mock.Mock()
+    response.status_code = 204
+
+    requests.put.return_value = response
+
+    client = miniflux.Client("http://localhost", api_key="secret")
+    client.mark_user_entries_as_read(123)
+
+    requests.put.assert_called_once_with('http://localhost/v1/users/123/mark-all-as-read',
+                                         headers={'X-Auth-Token': 'secret'},
+                                         auth=None,
+                                         timeout=30)
+
+
 def test_get_entry():
     requests = _get_request_mock()
     expected_result = []

@@ -1,5 +1,6 @@
 .cache
-*.egg-info
+.venv
+*.egg*
 *.pyc
 build
 dist

@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2018-2020 Frederic Guillot
+# Copyright (c) 2018-2022 Frederic Guillot
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,35 +24,35 @@ from setuptools import setup
 
 
 def readme():
-    with open('README.rst') as f:
+    with open("README.rst") as f:
         return f.read()
 
 
 setup(
-    name='miniflux',
-    version='0.0.13',
+    name="miniflux",
+    version="0.0.14",
     install_requires=[
-        'requests',
+        "requests",
     ],
-    description='Client library for Miniflux API',
+    description="Client library for Miniflux API",
     long_description=readme(),
-    keywords='rss atom rdf jsonfeed feed miniflux',
-    url='https://github.com/miniflux/python-client',
-    author='Frederic Guillot',
-    author_email='fred@miniflux.net',
-    license='MIT',
-    py_modules=['miniflux'],
-    python_requires='>=3.6',
+    keywords="rss atom rdf jsonfeed feed miniflux",
+    url="https://github.com/miniflux/python-client",
+    author="Frederic Guillot",
+    author_email="fred@miniflux.net",
+    license="MIT",
+    py_modules=["miniflux"],
+    python_requires=">=3.6",
     zip_safe=True,
-    test_suite='tests',
+    test_suite="tests",
     classifiers=[
-        'Intended Audience :: Developers',
-        'Natural Language :: English',
-        'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
+        "Intended Audience :: Developers",
+        "Natural Language :: English",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
     ],
 )

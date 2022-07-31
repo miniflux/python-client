@@ -417,3 +417,12 @@ class Client:
         )
         if response.status_code != 204:
             raise ClientError(response)
+
+    def get_feed_counters(self):
+        endpoint = self._get_endpoint("/feeds/counters")
+        response = requests.get(
+            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        )
+        if response.status_code == 200:
+            return response.json()
+        raise ClientError(response)

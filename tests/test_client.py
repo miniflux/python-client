@@ -488,6 +488,28 @@ class TestMinifluxClient(unittest.TestCase):
 
         assert result == expected_result
 
+    def test_refresh_category(self):
+        requests = _get_request_mock()
+        expected_result = True
+
+        response = mock.Mock()
+        response.status_code = 201
+        response.json.return_value = expected_result
+
+        requests.put.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password")
+        result = client.refresh_category(123)
+
+        requests.put.assert_called_once_with(
+            "http://localhost/v1/categories/123/refresh",
+            headers=None,
+            auth=("username", "password"),
+            timeout=30,
+        )
+
+        assert result == expected_result
+
     def test_get_feed_entries(self):
         requests = _get_request_mock()
         expected_result = []

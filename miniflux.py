@@ -128,6 +128,15 @@ class Client:
             return response.json()
         raise ClientError(response)
 
+    def get_category_feeds(self, feed_id: int) -> List[Dict]:
+        endpoint = self._get_endpoint(f"/categories/{feed_id}/feeds")
+        response = requests.get(
+            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        )
+        if response.status_code == 200:
+            return response.json()
+        raise ClientError(response)
+
     def get_feeds(self) -> List[Dict]:
         endpoint = self._get_endpoint("/feeds")
         response = requests.get(

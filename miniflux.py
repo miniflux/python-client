@@ -315,6 +315,15 @@ class Client:
             raise ClientError(response)
         return True
 
+    def save_entry(self, entry_id: int) -> bool:
+        endpoint = self._get_endpoint(f"/entries/{entry_id}/save")
+        response = requests.post(
+            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        )
+        if response.status_code != 202:
+            raise ClientError(response)
+        return True
+
     def get_categories(self) -> List[Dict]:
         endpoint = self._get_endpoint("/categories")
         response = requests.get(

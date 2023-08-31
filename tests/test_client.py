@@ -855,6 +855,25 @@ class TestMinifluxClient(unittest.TestCase):
             timeout=30.0,
         )
 
+    def test_save_entry(self):
+        requests = _get_request_mock()
+        expected_result = True
+
+        response = mock.Mock()
+        response.status_code = 202
+        requests.post.return_value = response
+
+        client = miniflux.Client("http://localhost", api_key="secret")
+        result = client.save_entry(123)
+
+        requests.post.assert_called_once_with(
+            "http://localhost/v1/entries/123/save",
+            headers={"X-Auth-Token": "secret"},
+            auth=None,
+            timeout=30.0,
+        )
+        assert result == expected_result
+
 
 def _get_request_mock():
     patcher = mock.patch("miniflux.requests")

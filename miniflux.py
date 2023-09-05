@@ -128,8 +128,8 @@ class Client:
             return response.json()
         raise ClientError(response)
 
-    def get_category_feeds(self, feed_id: int) -> List[Dict]:
-        endpoint = self._get_endpoint(f"/categories/{feed_id}/feeds")
+    def get_category_feeds(self, category_id: int) -> List[Dict]:
+        endpoint = self._get_endpoint(f"/categories/{category_id}/feeds")
         response = requests.get(
             endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
         )
@@ -328,6 +328,29 @@ class Client:
         endpoint = self._get_endpoint("/categories")
         response = requests.get(
             endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        )
+        if response.status_code == 200:
+            return response.json()
+        raise ClientError(response)
+
+    def get_category_entry(self, category_id: int, entry_id: int) -> Dict:
+        endpoint = self._get_endpoint(f"/categories/{category_id}/entries/{entry_id}")
+        response = requests.get(
+            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        )
+        if response.status_code == 200:
+            return response.json()
+        raise ClientError(response)
+
+    def get_category_entries(self, category_id: int, **kwargs) -> Dict:
+        endpoint = self._get_endpoint(f"/categories/{category_id}/entries")
+        params = self._get_params(**kwargs)
+        response = requests.get(
+            endpoint,
+            headers=self._headers,
+            auth=self._auth,
+            params=params,
+            timeout=self._timeout,
         )
         if response.status_code == 200:
             return response.json()

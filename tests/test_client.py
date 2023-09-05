@@ -510,6 +510,28 @@ class TestMinifluxClient(unittest.TestCase):
 
         assert result == expected_result
 
+    def test_get_feed_entry(self):
+        requests = _get_request_mock()
+        expected_result = {}
+
+        response = mock.Mock()
+        response.status_code = 200
+        response.json.return_value = expected_result
+
+        requests.get.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password")
+        result = client.get_feed_entry(123, 456)
+
+        requests.get.assert_called_once_with(
+            "http://localhost/v1/feeds/123/entries/456",
+            headers=None,
+            auth=("username", "password"),
+            timeout=30,
+        )
+
+        assert result == expected_result
+
     def test_get_feed_entries(self):
         requests = _get_request_mock()
         expected_result = []
@@ -872,6 +894,51 @@ class TestMinifluxClient(unittest.TestCase):
             auth=None,
             timeout=30.0,
         )
+        assert result == expected_result
+
+    def test_get_category_entry(self):
+        requests = _get_request_mock()
+        expected_result = {}
+
+        response = mock.Mock()
+        response.status_code = 200
+        response.json.return_value = expected_result
+
+        requests.get.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password")
+        result = client.get_category_entry(123, 456)
+
+        requests.get.assert_called_once_with(
+            "http://localhost/v1/categories/123/entries/456",
+            headers=None,
+            auth=("username", "password"),
+            timeout=30,
+        )
+
+        assert result == expected_result
+
+    def test_get_category_entries(self):
+        requests = _get_request_mock()
+        expected_result = []
+
+        response = mock.Mock()
+        response.status_code = 200
+        response.json.return_value = expected_result
+
+        requests.get.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password")
+        result = client.get_category_entries(123)
+
+        requests.get.assert_called_once_with(
+            "http://localhost/v1/categories/123/entries",
+            headers=None,
+            auth=("username", "password"),
+            params=None,
+            timeout=30,
+        )
+
         assert result == expected_result
 
 

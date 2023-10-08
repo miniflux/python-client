@@ -285,6 +285,23 @@ class Client:
             return response.json()
         raise ClientError(response)
 
+    def update_entry(self, entry_id: int, title: str = None, content: str = None) -> Dict:
+        endpoint = self._get_endpoint(f"/entries/{entry_id}")
+        data = self._get_modification_params(**{
+            "title": title,
+            "content": content,
+        })
+        response = requests.put(
+            endpoint,
+            headers=self._headers,
+            auth=self._auth,
+            data=json.dumps(data),
+            timeout=self._timeout,
+        )
+        if response.status_code == 201:
+            return response.json()
+        raise ClientError(response)
+
     def update_entries(self, entry_ids: List[int], status: str) -> bool:
         endpoint = self._get_endpoint("/entries")
         data = {"entry_ids": entry_ids, "status": status}

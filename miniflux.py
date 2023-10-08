@@ -71,11 +71,13 @@ class Client:
     def _get_modification_params(self, **kwargs) -> Dict:
         return {k: v for k, v in kwargs.items() if v is not None}
 
-    def get_version(self) -> str:
-        endpoint = f"{self._base_url}/version"
-        response = requests.get(endpoint, timeout=self._timeout)
+    def get_version(self) -> Dict:
+        endpoint = self._get_endpoint("/version")
+        response = requests.get(
+            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        )
         if response.status_code == 200:
-            return response.text
+            return response.json()
         raise ClientError(response)
 
     def me(self) -> Dict:

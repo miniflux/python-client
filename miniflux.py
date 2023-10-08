@@ -185,7 +185,7 @@ class Client:
     def get_icon_by_feed_id(self, feed_id: int) -> Dict:
         return self.get_feed_icon(feed_id)
 
-    def create_feed(self, feed_url: str, category_id: int, **kwargs) -> int:
+    def create_feed(self, feed_url: str, category_id: int = None, **kwargs) -> int:
         endpoint = self._get_endpoint("/feeds")
         data = dict(feed_url=feed_url, category_id=category_id)
         data.update(kwargs)

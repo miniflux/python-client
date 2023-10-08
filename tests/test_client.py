@@ -418,6 +418,37 @@ class TestMinifluxClient(unittest.TestCase):
         self.assertIsNone(payload.get("crawler"))
         self.assertEqual(result, expected_result["feed_id"])
 
+    def test_create_feed_with_no_category(self):
+        requests = _get_request_mock()
+        expected_result = {"feed_id": 42}
+
+        response = mock.Mock()
+        response.status_code = 201
+        response.json.return_value = expected_result
+
+        requests.post.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password")
+        result = client.create_feed("http://example.org/feed")
+
+        requests.post.assert_called_once_with(
+            "http://localhost/v1/feeds",
+            headers=None,
+            auth=("username", "password"),
+            data=mock.ANY,
+            timeout=30.0,
+        )
+
+        _, kwargs = requests.post.call_args
+        payload = json.loads(kwargs.get("data"))
+
+        self.assertEqual(payload.get("feed_url"), "http://example.org/feed")
+        self.assertIsNone(payload.get("category_id"))
+        self.assertIsNone(payload.get("username"))
+        self.assertIsNone(payload.get("password"))
+        self.assertIsNone(payload.get("crawler"))
+        self.assertEqual(result, expected_result["feed_id"])
+
     def test_create_feed_with_credentials(self):
         requests = _get_request_mock()
         expected_result = {"feed_id": 42}

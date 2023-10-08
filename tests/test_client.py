@@ -971,6 +971,86 @@ class TestMinifluxClient(unittest.TestCase):
 
         assert result == expected_result
 
+    def test_update_entry_title(self):
+        requests = _get_request_mock()
+        expected_result = {"id": 123, "title": "New title"}
+
+        response = mock.Mock()
+        response.status_code = 201
+        response.json.return_value = expected_result
+
+        requests.put.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password")
+        result = client.update_entry(entry_id=123, title="New title")
+
+        requests.put.assert_called_once_with(
+            "http://localhost/v1/entries/123",
+            headers=None,
+            auth=("username", "password"),
+            data=mock.ANY,
+            timeout=30.0,
+        )
+
+        _, kwargs = requests.put.call_args
+        payload = json.loads(kwargs.get("data"))
+
+        self.assertEqual(payload.get("title"), "New title")
+        self.assertEqual(result, expected_result)
+
+    def test_update_entry_content(self):
+        requests = _get_request_mock()
+        expected_result = {"id": 123, "content": "New content"}
+
+        response = mock.Mock()
+        response.status_code = 201
+        response.json.return_value = expected_result
+
+        requests.put.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password")
+        result = client.update_entry(entry_id=123, content="New content")
+
+        requests.put.assert_called_once_with(
+            "http://localhost/v1/entries/123",
+            headers=None,
+            auth=("username", "password"),
+            data=mock.ANY,
+            timeout=30.0,
+        )
+
+        _, kwargs = requests.put.call_args
+        payload = json.loads(kwargs.get("data"))
+
+        self.assertEqual(payload.get("content"), "New content")
+        self.assertEqual(result, expected_result)
+
+    def test_update_entries_status(self):
+        requests = _get_request_mock()
+
+        response = mock.Mock()
+        response.status_code = 204
+
+        requests.put.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password")
+        result = client.update_entries(entry_ids=[123, 456], status="read")
+
+        requests.put.assert_called_once_with(
+            "http://localhost/v1/entries",
+            headers=None,
+            auth=("username", "password"),
+            data=mock.ANY,
+            timeout=30.0,
+        )
+
+        _, kwargs = requests.put.call_args
+        payload = json.loads(kwargs.get("data"))
+
+        self.assertEqual(payload.get("entry_ids"), [123, 456])
+        self.assertEqual(payload.get("status"), "read")
+        self.assertTrue(result)
+
 
 def _get_request_mock():
     patcher = mock.patch("miniflux.requests")

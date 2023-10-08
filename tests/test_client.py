@@ -75,10 +75,30 @@ class TestMinifluxClient(unittest.TestCase):
             headers=None,
             auth=("username", "password"),
             data=mock.ANY,
-            timeout=30,
+            timeout=30.0,
         )
 
         self.assertEqual(result, expected_result)
+
+    def test_flush_history(self):
+        requests = _get_request_mock()
+
+        response = mock.Mock()
+        response.status_code = 202
+
+        requests.delete.return_value = response
+
+        client = miniflux.Client("http://localhost", api_key="secret")
+        result = client.flush_history()
+
+        requests.delete.assert_called_once_with(
+            "http://localhost/v1/flush-history",
+            headers={"X-Auth-Token": "secret"},
+            auth=None,
+            timeout=30.0,
+        )
+
+        self.assertTrue(result)
 
     def test_get_version(self):
         requests = _get_request_mock()

@@ -71,6 +71,13 @@ class Client:
     def _get_modification_params(self, **kwargs) -> Dict:
         return {k: v for k, v in kwargs.items() if v is not None}
 
+    def flush_history(self) -> bool:
+        endpoint = self._get_endpoint("/flush-history")
+        response = requests.delete(
+            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        )
+        return response.status_code == 202
+
     def get_version(self) -> Dict:
         endpoint = self._get_endpoint("/version")
         response = requests.get(

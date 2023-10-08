@@ -80,6 +80,36 @@ class TestMinifluxClient(unittest.TestCase):
 
         self.assertEqual(result, expected_result)
 
+    def test_get_version(self):
+        requests = _get_request_mock()
+        expected_result = {
+            "version": "dev",
+            "commit": "HEAD",
+            "build_date": "undefined",
+            "go_version": "go1.21.1",
+            "compiler": "gc",
+            "arch": "amd64",
+            "os": "darwin"
+        }
+
+        response = mock.Mock()
+        response.status_code = 200
+        response.json.return_value = expected_result
+
+        requests.get.return_value = response
+
+        client = miniflux.Client("http://localhost", api_key="secret")
+        result = client.get_version()
+
+        requests.get.assert_called_once_with(
+            "http://localhost/v1/version",
+            headers={"X-Auth-Token": "secret"},
+            auth=None,
+            timeout=30.0,
+        )
+
+        self.assertEqual(result, expected_result)
+
     def test_get_me(self):
         requests = _get_request_mock()
         expected_result = {"id": 123, "username": "foobar"}

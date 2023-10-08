@@ -315,6 +315,58 @@ class TestMinifluxClient(unittest.TestCase):
 
         self.assertEqual(result, expected_result)
 
+    def test_get_feed_icon(self):
+        requests = _get_request_mock()
+        expected_result = {
+            "id": 11,
+            "mime_type": "image/x-icon",
+            "data": "image/x-icon;base64,data",
+        }
+
+        response = mock.Mock()
+        response.status_code = 200
+        response.json.return_value = expected_result
+
+        requests.get.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password")
+        result = client.get_icon_by_feed_id(123)
+
+        requests.get.assert_called_once_with(
+            "http://localhost/v1/feeds/123/icon",
+            headers=None,
+            auth=("username", "password"),
+            timeout=30.0,
+        )
+
+        self.assertEqual(result, expected_result)
+
+    def test_get_icon(self):
+        requests = _get_request_mock()
+        expected_result = {
+            "id": 11,
+            "mime_type": "image/x-icon",
+            "data": "image/x-icon;base64,data",
+        }
+
+        response = mock.Mock()
+        response.status_code = 200
+        response.json.return_value = expected_result
+
+        requests.get.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password")
+        result = client.get_icon(11)
+
+        requests.get.assert_called_once_with(
+            "http://localhost/v1/icons/11",
+            headers=None,
+            auth=("username", "password"),
+            timeout=30.0,
+        )
+
+        self.assertEqual(result, expected_result)
+
     def test_create_feed(self):
         requests = _get_request_mock()
         expected_result = {"feed_id": 42}

@@ -166,6 +166,18 @@ class Client:
             return response.json()
         raise ClientError(response)
 
+    def get_icon(self, icon_id: int) -> Dict:
+        endpoint = self._get_endpoint(f"/icons/{icon_id}")
+        response = requests.get(
+            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        )
+        if response.status_code == 200:
+            return response.json()
+        raise ClientError(response)
+
+    def get_icon_by_feed_id(self, feed_id: int) -> Dict:
+        return self.get_feed_icon(feed_id)
+
     def create_feed(self, feed_url: str, category_id: int, **kwargs) -> int:
         endpoint = self._get_endpoint("/feeds")
         data = dict(feed_url=feed_url, category_id=category_id)

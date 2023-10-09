@@ -9,8 +9,8 @@ Python client library for Miniflux API.
 Dependencies
 ------------
 
-- Miniflux >= 2.x
-- Python >= 3.6
+- Miniflux >= 2.0.49
+- Python >= 3.7
 - requests
 
 Installation
@@ -18,14 +18,14 @@ Installation
 
 .. code:: bash
 
-    pip install miniflux
+    python3 -m pip install miniflux
 
 Running Tests
 -------------
 
 .. code:: bash
 
-    python setup.py test
+    python3 -m unittest -v
 
 Usage Example
 -------------

@@ -1,0 +1,35 @@
+[project]
+name = "miniflux"
+version = "0.0.17"
+description = "Client library for Miniflux"
+readme = "README.rst"
+requires-python = ">=3.7"
+license = {file = "LICENSE.txt"}
+keywords = ["rss", "atom", "rdf", "jsonfeed", "feed", "miniflux"]
+authors = [
+  {name = "Frédéric Guillot", email = "fred@miniflux.net" }
+]
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
+]
+dependencies = [
+  "requests"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/miniflux/python-client"
+"Bug Reports" = "https://github.com/miniflux/v2/issues"
+"Source" = "https://github.com/miniflux/python-client"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

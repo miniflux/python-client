@@ -6,7 +6,7 @@ Miniflux Python API Client
 
 Python client library for Miniflux API.
 
-Dependencies
+Requirements
 ------------
 
 - Miniflux >= 2.0.49
@@ -35,7 +35,7 @@ Usage Example
     import miniflux
 
     # Creating a client using username / password authentication
-    client = miniflux.Client("https://miniflux.example.org", "my_username", "my_secret_password")
+    client = miniflux.Client("https://miniflux.example.org", username="my_username", password="my_secret_password")
 
     # Use an API Key (preferred method)
     client = miniflux.Client("https://miniflux.example.org", api_key="My secret API token")
@@ -50,7 +50,7 @@ Usage Example
     subscriptions = client.discover("https://example.org")
 
     # Create a new feed, with a personalized user agent and with the crawler enabled
-    feed_id = client.create_feed("http://example.org/feed.xml", 42, crawler=True, user_agent="GoogleBot")
+    feed_id = client.create_feed("http://example.org/feed.xml", category_id=42, crawler=True, user_agent="GoogleBot")
 
     # Fetch 10 starred entries
     entries = client.get_entries(starred=True, limit=10)
@@ -61,14 +61,29 @@ Usage Example
     # Fetch entries that belongs to a category with status unread and read
     entries = client.get_entries(category_id=456, status=['read', 'unread'])
 
+    # Update entry title and content
+    client.update_entry(entry_id=1234, title="New title", content="New content")
+
     # Update a feed category
     client.update_feed(123, category_id=456)
 
     # OPML Export
     opml = client.export_feeds()
 
+    # OPML import
+    client.import_feeds(opml_data)
+
     # Get application version
     client.get_version()
+
+    # Flush history
+    client.flush_history()
+
+    # Get current user
+    myself = client.me()
+
+
+Look at `miniflux.py <https://github.com/miniflux/python-client/blob/main/miniflux.py>`_  to get the complete list of methods.
 
 Author
 ------

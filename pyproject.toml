@@ -7,7 +7,7 @@ requires-python = ">=3.7"
 license = {file = "LICENSE.txt"}
 keywords = ["rss", "atom", "rdf", "jsonfeed", "feed", "miniflux"]
 authors = [
-  {name = "Frédéric Guillot", email = "fred@miniflux.net" }
+  {name = "Frédéric Guillot", email = "fred@miniflux.net"}
 ]
 classifiers = [
     "Intended Audience :: Developers",
@@ -27,7 +27,7 @@ dependencies = [
 
 [project.urls]
 "Homepage" = "https://github.com/miniflux/python-client"
-"Bug Reports" = "https://github.com/miniflux/v2/issues"
+"Bug Reports" = "https://github.com/miniflux/python-client/issues"
 "Source" = "https://github.com/miniflux/python-client"
 
 [build-system]

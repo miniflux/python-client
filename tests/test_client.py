@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2018-2022 Frederic Guillot
+# Copyright (c) 2018-2023 Frederic Guillot
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -72,7 +72,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.post.assert_called_once_with(
             "http://localhost/v1/discover",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             data=mock.ANY,
             timeout=30.0,
@@ -93,7 +93,10 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.delete.assert_called_once_with(
             "http://localhost/v1/flush-history",
-            headers={"X-Auth-Token": "secret"},
+            headers={
+                "User-Agent": miniflux.DEFAULT_USER_AGENT,
+                "X-Auth-Token": "secret",
+            },
             auth=None,
             timeout=30.0,
         )
@@ -123,7 +126,10 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/version",
-            headers={"X-Auth-Token": "secret"},
+            headers={
+                "User-Agent": miniflux.DEFAULT_USER_AGENT,
+                "X-Auth-Token": "secret",
+            },
             auth=None,
             timeout=30.0,
         )
@@ -145,7 +151,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/me",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             timeout=30,
         )
@@ -182,7 +188,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.post.assert_called_once_with(
             "http://localhost/v1/discover",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             data=mock.ANY,
             timeout=30,
@@ -218,7 +224,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.post.assert_called_once_with(
             "http://localhost/v1/discover",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             data=mock.ANY,
             timeout=30,
@@ -263,7 +269,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/export",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             timeout=30,
         )
@@ -284,7 +290,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.post.assert_called_once_with(
             "http://localhost/v1/import",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             data=input_data,
             auth=("username", "password"),
             timeout=30,
@@ -307,7 +313,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.post.assert_called_once_with(
             "http://localhost/v1/import",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             data=input_data,
             auth=("username", "password"),
             timeout=30,
@@ -328,7 +334,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/feeds/123",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             timeout=30,
         )
@@ -354,7 +360,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/feeds/123/icon",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             timeout=30.0,
         )
@@ -380,7 +386,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/icons/11",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             timeout=30.0,
         )
@@ -402,7 +408,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.post.assert_called_once_with(
             "http://localhost/v1/feeds",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             data=mock.ANY,
             timeout=30,
@@ -433,7 +439,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.post.assert_called_once_with(
             "http://localhost/v1/feeds",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             data=mock.ANY,
             timeout=30.0,
@@ -466,7 +472,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.post.assert_called_once_with(
             "http://localhost/v1/feeds",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             data=mock.ANY,
             timeout=30,
@@ -497,7 +503,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.post.assert_called_once_with(
             "http://localhost/v1/feeds",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             data=mock.ANY,
             timeout=30,
@@ -530,7 +536,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.post.assert_called_once_with(
             "http://localhost/v1/feeds",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             data=mock.ANY,
             timeout=30,
@@ -562,7 +568,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.put.assert_called_once_with(
             "http://localhost/v1/feeds/123",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             data=mock.ANY,
             timeout=30,
@@ -592,7 +598,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.put.assert_called_once_with(
             "http://localhost/v1/feeds/refresh",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             timeout=30,
         )
@@ -614,7 +620,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.put.assert_called_once_with(
             "http://localhost/v1/feeds/123/refresh",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             timeout=30,
         )
@@ -636,7 +642,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.put.assert_called_once_with(
             "http://localhost/v1/categories/123/refresh",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             timeout=30,
         )
@@ -658,7 +664,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/feeds/123/entries/456",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             timeout=30,
         )
@@ -680,7 +686,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/feeds/123/entries",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             params=None,
             timeout=30,
@@ -703,7 +709,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/feeds/123/entries",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             params={"direction": "asc"},
             timeout=30,
@@ -724,7 +730,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.put.assert_called_once_with(
             "http://localhost/v1/feeds/123/mark-all-as-read",
-            headers={"X-Auth-Token": "secret"},
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT, "X-Auth-Token": "secret"},
             auth=None,
             timeout=30,
         )
@@ -742,7 +748,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.put.assert_called_once_with(
             "http://localhost/v1/categories/123/mark-all-as-read",
-            headers={"X-Auth-Token": "secret"},
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT, "X-Auth-Token": "secret"},
             auth=None,
             timeout=30,
         )
@@ -760,7 +766,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.put.assert_called_once_with(
             "http://localhost/v1/users/123/mark-all-as-read",
-            headers={"X-Auth-Token": "secret"},
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT, "X-Auth-Token": "secret"},
             auth=None,
             timeout=30,
         )
@@ -780,7 +786,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/entries/123",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             timeout=30,
         )
@@ -802,7 +808,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/entries/123/fetch-content",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             timeout=30,
         )
@@ -824,7 +830,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/entries",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             params=mock.ANY,
             timeout=30,
@@ -848,7 +854,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/entries",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             params={"before": param_value},
             timeout=30,
@@ -871,7 +877,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/entries",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             params={"starred": True},
             timeout=30,
@@ -894,7 +900,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/entries",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             params={"after_entry_id": 123},
             timeout=30,
@@ -917,7 +923,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/users/123",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             timeout=30,
         )
@@ -939,7 +945,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/users/foobar",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             timeout=30,
         )
@@ -961,7 +967,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.put.assert_called_once_with(
             "http://localhost/v1/users/123",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             data=mock.ANY,
             timeout=30,
@@ -986,7 +992,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/export",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             timeout=1.0,
         )
@@ -1005,7 +1011,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/export",
-            headers={"X-Auth-Token": "secret"},
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT, "X-Auth-Token": "secret"},
             auth=None,
             timeout=30.0,
         )
@@ -1023,7 +1029,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.post.assert_called_once_with(
             "http://localhost/v1/entries/123/save",
-            headers={"X-Auth-Token": "secret"},
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT, "X-Auth-Token": "secret"},
             auth=None,
             timeout=30.0,
         )
@@ -1044,7 +1050,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/categories/123/entries/456",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             timeout=30,
         )
@@ -1066,7 +1072,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/categories/123/entries",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             params=None,
             timeout=30,
@@ -1089,7 +1095,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.put.assert_called_once_with(
             "http://localhost/v1/entries/123",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             data=mock.ANY,
             timeout=30.0,
@@ -1116,7 +1122,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.put.assert_called_once_with(
             "http://localhost/v1/entries/123",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             data=mock.ANY,
             timeout=30.0,
@@ -1141,7 +1147,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.put.assert_called_once_with(
             "http://localhost/v1/entries",
-            headers=None,
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             auth=("username", "password"),
             data=mock.ANY,
             timeout=30.0,

@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2018-2022 Frederic Guillot
+# Copyright (c) 2018-2023 Frederic Guillot
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,9 @@ from typing import Dict, List, Optional, Union
 import requests
 
 
+DEFAULT_USER_AGENT = "Miniflux Python Client Library"
+
+
 class ClientError(Exception):
     def __init__(self, response):
         self.status_code = response.status_code
@@ -49,6 +52,7 @@ class Client:
         password: str = None,
         timeout: float = 30.0,
         api_key: str = None,
+        user_agent: str = DEFAULT_USER_AGENT,
     ):
         self._base_url = base_url
         self._api_key = api_key
@@ -56,7 +60,9 @@ class Client:
         self._password = password
         self._timeout = timeout
         self._auth = (self._username, self._password) if not api_key else None
-        self._headers = {"X-Auth-Token": api_key} if api_key else None
+        self._headers = {"User-Agent": user_agent}
+        if api_key:
+            self._headers["X-Auth-Token"] = api_key
 
     def _get_endpoint(self, path: str) -> str:
         if len(self._base_url) > 0 and self._base_url[-1:] == "/":

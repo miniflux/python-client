@@ -1,0 +1,39 @@
+{
+  "name": "Miniflux Python Client Library",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "library",
+  "workspaceFolder": "/workspace",
+  "remoteUser": "vscode",
+  "forwardPorts": [
+    8080
+  ],
+  "postCreateCommand": "python3 -m pip install -e .",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
+  "customizations": {
+    "settings": {
+      "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "./tests",
+        "-p",
+        "test_*.py"
+      ],
+      "python.testing.pytestEnabled": false,
+      "python.testing.unittestEnabled": true
+    },
+    "vscode": {
+      "extensions": [
+        "GitHub.codespaces",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "ms-azuretools.vscode-docker",
+        "ms-python.python",
+        "ms-python.pylint",
+        "ms-python.vscode-pylance"
+      ]
+    }
+  }
+}

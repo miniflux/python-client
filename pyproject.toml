@@ -1,6 +1,6 @@
 [project]
 name = "miniflux"
-version = "1.0.0"
+version = "1.0.1"
 description = "Client library for Miniflux"
 readme = "README.rst"
 requires-python = ">=3.7"

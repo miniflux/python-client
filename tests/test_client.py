@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2018-2023 Frederic Guillot
+# Copyright (c) 2018-2024 Frederic Guillot
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@ import unittest
 from unittest import mock
 
 import miniflux
-from miniflux import ClientError
+from miniflux import AccessForbidden, AccessUnauthorized, BadRequest, ClientError, ResourceNotFound, ServerError
 from requests.exceptions import Timeout
 
 
@@ -35,7 +35,7 @@ class TestMinifluxClient(unittest.TestCase):
         response = mock.Mock()
         response.status_code = 404
         response.json.return_value = {"error_message": "some error"}
-        error = ClientError(response)
+        error = ResourceNotFound(response)
         self.assertEqual(error.status_code, 404)
         self.assertEqual(error.get_error_reason(), "some error")
 
@@ -43,7 +43,7 @@ class TestMinifluxClient(unittest.TestCase):
         response = mock.Mock()
         response.status_code = 404
         response.json.return_value = {}
-        error = ClientError(response)
+        error = ResourceNotFound(response)
         self.assertEqual(error.status_code, 404)
         self.assertEqual(error.get_error_reason(), "status_code=404")
 
@@ -51,7 +51,7 @@ class TestMinifluxClient(unittest.TestCase):
         response = mock.Mock()
         response.status_code = 404
         response.json.return_value = None
-        error = ClientError(response)
+        error = ResourceNotFound(response)
         self.assertEqual(error.status_code, 404)
         self.assertEqual(error.get_error_reason(), "status_code=404")
 
@@ -930,6 +930,20 @@ class TestMinifluxClient(unittest.TestCase):
 
         assert result == expected_result
 
+    def test_get_inexisting_user(self):
+        requests = _get_request_mock()
+
+        response = mock.Mock()
+        response.status_code = 404
+        response.json.return_value = {"error_message": "some error"}
+
+        requests.get.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password")
+
+        with self.assertRaises(ResourceNotFound):
+            client.get_user_by_id(123)
+
     def test_get_user_by_username(self):
         requests = _get_request_mock()
         expected_result = []
@@ -1159,6 +1173,76 @@ class TestMinifluxClient(unittest.TestCase):
         self.assertEqual(payload.get("entry_ids"), [123, 456])
         self.assertEqual(payload.get("status"), "read")
         self.assertTrue(result)
+
+    def test_not_found_response(self):
+        requests = _get_request_mock()
+
+        response = mock.Mock()
+        response.status_code = 404
+        response.json.return_value = {"error_message": "Not found"}
+
+        requests.get.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password")
+
+        with self.assertRaises(ResourceNotFound):
+            client.get_version()
+
+    def test_unauthorized_response(self):
+        requests = _get_request_mock()
+
+        response = mock.Mock()
+        response.status_code = 401
+        response.json.return_value = {"error_message": "Unauthorized"}
+
+        requests.get.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password")
+
+        with self.assertRaises(AccessUnauthorized):
+            client.get_version()
+
+    def test_forbidden_response(self):
+        requests = _get_request_mock()
+
+        response = mock.Mock()
+        response.status_code = 403
+        response.json.return_value = {"error_message": "Forbidden"}
+
+        requests.get.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password")
+
+        with self.assertRaises(AccessForbidden):
+            client.get_version()
+
+    def test_bad_request_response(self):
+        requests = _get_request_mock()
+
+        response = mock.Mock()
+        response.status_code = 400
+        response.json.return_value = {"error_message": "Bad request"}
+
+        requests.get.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password")
+
+        with self.assertRaises(BadRequest):
+            client.get_version()
+
+    def test_server_error_response(self):
+        requests = _get_request_mock()
+
+        response = mock.Mock()
+        response.status_code = 500
+        response.json.return_value = {"error_message": "Server error"}
+
+        requests.get.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password")
+
+        with self.assertRaises(ServerError):
+            client.get_version()
 
 
 def _get_request_mock():

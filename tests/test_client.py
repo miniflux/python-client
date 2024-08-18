@@ -26,7 +26,14 @@ import unittest
 from unittest import mock
 
 import miniflux
-from miniflux import AccessForbidden, AccessUnauthorized, BadRequest, ClientError, ResourceNotFound, ServerError
+from miniflux import (
+    AccessForbidden,
+    AccessUnauthorized,
+    BadRequest,
+    ClientError,
+    ResourceNotFound,
+    ServerError,
+)
 from requests.exceptions import Timeout
 
 
@@ -112,7 +119,7 @@ class TestMinifluxClient(unittest.TestCase):
             "go_version": "go1.21.1",
             "compiler": "gc",
             "arch": "amd64",
-            "os": "darwin"
+            "os": "darwin",
         }
 
         response = mock.Mock()
@@ -730,7 +737,10 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.put.assert_called_once_with(
             "http://localhost/v1/feeds/123/mark-all-as-read",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT, "X-Auth-Token": "secret"},
+            headers={
+                "User-Agent": miniflux.DEFAULT_USER_AGENT,
+                "X-Auth-Token": "secret",
+            },
             auth=None,
             timeout=30,
         )
@@ -748,7 +758,10 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.put.assert_called_once_with(
             "http://localhost/v1/categories/123/mark-all-as-read",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT, "X-Auth-Token": "secret"},
+            headers={
+                "User-Agent": miniflux.DEFAULT_USER_AGENT,
+                "X-Auth-Token": "secret",
+            },
             auth=None,
             timeout=30,
         )
@@ -766,7 +779,10 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.put.assert_called_once_with(
             "http://localhost/v1/users/123/mark-all-as-read",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT, "X-Auth-Token": "secret"},
+            headers={
+                "User-Agent": miniflux.DEFAULT_USER_AGENT,
+                "X-Auth-Token": "secret",
+            },
             auth=None,
             timeout=30,
         )
@@ -1025,7 +1041,10 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.get.assert_called_once_with(
             "http://localhost/v1/export",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT, "X-Auth-Token": "secret"},
+            headers={
+                "User-Agent": miniflux.DEFAULT_USER_AGENT,
+                "X-Auth-Token": "secret",
+            },
             auth=None,
             timeout=30.0,
         )
@@ -1043,7 +1062,10 @@ class TestMinifluxClient(unittest.TestCase):
 
         requests.post.assert_called_once_with(
             "http://localhost/v1/entries/123/save",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT, "X-Auth-Token": "secret"},
+            headers={
+                "User-Agent": miniflux.DEFAULT_USER_AGENT,
+                "X-Auth-Token": "secret",
+            },
             auth=None,
             timeout=30.0,
         )
@@ -1173,6 +1195,47 @@ class TestMinifluxClient(unittest.TestCase):
         self.assertEqual(payload.get("entry_ids"), [123, 456])
         self.assertEqual(payload.get("status"), "read")
         self.assertTrue(result)
+
+    def test_get_enclosure(self):
+        requests = _get_request_mock()
+        expected_result = {"id": 123, "mime_type": "audio/mpeg"}
+
+        response = mock.Mock()
+        response.status_code = 200
+        response.json.return_value = expected_result
+
+        requests.get.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password")
+        result = client.get_enclosure(123)
+
+        requests.get.assert_called_once_with(
+            "http://localhost/v1/enclosures/123",
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
+            auth=("username", "password"),
+            timeout=30.0,
+        )
+
+        self.assertEqual(result, expected_result)
+
+    def test_update_enclosure(self):
+        requests = _get_request_mock()
+
+        response = mock.Mock()
+        response.status_code = 204
+
+        requests.put.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password")
+        self.assertTrue(client.update_enclosure(123, media_progression=42))
+
+        requests.put.assert_called_once_with(
+            "http://localhost/v1/enclosures/123",
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
+            auth=("username", "password"),
+            data=mock.ANY,
+            timeout=30.0,
+        )
 
     def test_not_found_response(self):
         requests = _get_request_mock()

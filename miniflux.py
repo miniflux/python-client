@@ -21,7 +21,6 @@
 # THE SOFTWARE.
 
 import json
-from typing import Dict, List, Optional, Union
 
 import requests
 
@@ -59,6 +58,7 @@ class ResourceNotFound(ClientError):
     """
     Exception raised when the API client receives a 404 response from the server.
     """
+
     pass
 
 
@@ -66,6 +66,7 @@ class AccessForbidden(ClientError):
     """
     Exception raised when the API client receives a 403 response from the server.
     """
+
     pass
 
 
@@ -73,6 +74,7 @@ class AccessUnauthorized(ClientError):
     """
     Exception raised when the API client receives a 401 response from the server.
     """
+
     pass
 
 
@@ -80,6 +82,7 @@ class BadRequest(ClientError):
     """
     Exception raised when the API client receives a 400 response from the server.
     """
+
     pass
 
 
@@ -87,6 +90,7 @@ class ServerError(ClientError):
     """
     Exception raised when the API client receives a 500 response from the server.
     """
+
     pass
 
 
@@ -94,15 +98,16 @@ class Client:
     """
     Miniflux API client.
     """
+
     API_VERSION = 1
 
     def __init__(
         self,
         base_url: str,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+        username: str | None = None,
+        password: str | None = None,
         timeout: float = 30.0,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         user_agent: str = DEFAULT_USER_AGENT,
     ):
         self._base_url = base_url
@@ -110,7 +115,9 @@ class Client:
         self._username = username
         self._password = password
         self._timeout = timeout
-        self._auth: Optional[tuple] = (self._username, self._password) if not api_key else None
+        self._auth: tuple | None = (
+            (self._username, self._password) if not api_key else None
+        )
         self._headers = {"User-Agent": user_agent}
         if api_key:
             self._headers["X-Auth-Token"] = api_key
@@ -121,11 +128,11 @@ class Client:
 
         return f"{self._base_url}/v{self.API_VERSION}{path}"
 
-    def _get_params(self, **kwargs) -> Optional[Dict]:
+    def _get_params(self, **kwargs) -> dict | None:
         params = {k: v for k, v in kwargs.items() if v}
         return params if len(params) > 0 else None
 
-    def _get_modification_params(self, **kwargs) -> Dict:
+    def _get_modification_params(self, **kwargs) -> dict:
         return {k: v for k, v in kwargs.items() if v is not None}
 
     def _handle_error_response(self, response: requests.Response):
@@ -156,7 +163,7 @@ class Client:
             return True
         self._handle_error_response(response)
 
-    def get_version(self) -> Dict:
+    def get_version(self) -> dict:
         """
         Get the version information of the Miniflux instance.
 
@@ -173,30 +180,12 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def me(self) -> Dict:
+    def me(self) -> dict:
         """
         Get the authenticated user's information.
 
         Returns:
-            A dictionary containing the user's information, including the following keys:
-            - id (int): The user's ID.
-            - username (str): The user's username.
-            - email (str): The user's email address.
-            - language (str): The user's preferred language.
-            - timezone (str): The user's preferred timezone.
-            - entry_sorting_direction (str): The user's preferred sorting direction for entries.
-            - entry_sorting_method (str): The user's preferred sorting method for entries.
-            - theme (str): The user's preferred theme.
-            - show_reading_time (bool): Whether to show the estimated reading time for entries.
-            - keyboard_shortcuts (bool): Whether to enable keyboard shortcuts.
-            - entry_swipe (bool): Whether to enable swipe gestures on entries.
-            - always_https (bool): Whether to always use HTTPS.
-            - public_bookmarks (bool): Whether to make bookmarks public by default.
-            - sharing_services (List[Dict]): A list of sharing services enabled for the user.
-            - entry_pinned (bool): Whether to show pinned entries first.
-            - entry_view_mode (str): The user's preferred view mode for entries.
-            - created_at (str): The date and time when the user account was created.
-            - updated_at (str): The date and time when the user account was last updated.
+            A dictionary containing the user's information.
         Raises:
             ClientError: If the request fails.
         """
@@ -236,15 +225,14 @@ class Client:
             return response.text
         self._handle_error_response(response)
 
-    def import_feeds(self, opml: str) -> Dict:
+    def import_feeds(self, opml: str) -> dict:
         """
         Import feeds from an OPML file.
 
         Args:
             opml (str): The OPML data.
         Returns:
-            Dict: A dictionary containing the import result, including the following keys:
-            - message: A message describing the import result.
+            A dictionary containing the import result.
         Raises:
             ClientError: If the request fails.
         """
@@ -260,7 +248,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def discover(self, website_url: str, **kwargs) -> List[Dict]:
+    def discover(self, website_url: str, **kwargs) -> list[dict]:
         """
         Discover feeds from a website.
 
@@ -286,7 +274,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def get_category_feeds(self, category_id: int) -> List[Dict]:
+    def get_category_feeds(self, category_id: int) -> list[dict]:
         """
         Retrieves a list of feeds for a given category.
 
@@ -305,7 +293,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def get_feeds(self) -> List[Dict]:
+    def get_feeds(self) -> list[dict]:
         """
         Retrieves a list of all feeds.
 
@@ -322,7 +310,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def get_feed(self, feed_id: int) -> Dict:
+    def get_feed(self, feed_id: int) -> dict:
         """
         Retrieves a feed.
 
@@ -341,7 +329,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def get_feed_icon(self, feed_id: int) -> Dict:
+    def get_feed_icon(self, feed_id: int) -> dict:
         """
         Retrieves a feed icon.
 
@@ -360,7 +348,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def get_icon(self, icon_id: int) -> Dict:
+    def get_icon(self, icon_id: int) -> dict:
         """
         Retrieves a feed icon.
 
@@ -379,7 +367,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def get_icon_by_feed_id(self, feed_id: int) -> Dict:
+    def get_icon_by_feed_id(self, feed_id: int) -> dict:
         """
         Retrieves a feed icon.
 
@@ -392,7 +380,9 @@ class Client:
         """
         return self.get_feed_icon(feed_id)
 
-    def create_feed(self, feed_url: str, category_id: Optional[int] = None, **kwargs) -> int:
+    def create_feed(
+        self, feed_url: str, category_id: int | None = None, **kwargs
+    ) -> int:
         """
         Create a new feed.
 
@@ -419,7 +409,7 @@ class Client:
             return response.json()["feed_id"]
         self._handle_error_response(response)
 
-    def update_feed(self, feed_id: int, **kwargs) -> Dict:
+    def update_feed(self, feed_id: int, **kwargs) -> dict:
         """
         Update a feed.
 
@@ -514,7 +504,7 @@ class Client:
         if response.status_code != 204:
             self._handle_error_response(response)
 
-    def get_feed_entry(self, feed_id: int, entry_id: int) -> Dict:
+    def get_feed_entry(self, feed_id: int, entry_id: int) -> dict:
         """
         Fetch a single entry for a given feed.
 
@@ -534,7 +524,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def get_feed_entries(self, feed_id: int, **kwargs) -> Dict:
+    def get_feed_entries(self, feed_id: int, **kwargs) -> dict:
         """
         Fetch all entries that belongs to the given feed.
 
@@ -576,7 +566,7 @@ class Client:
         if response.status_code != 204:
             self._handle_error_response(response)
 
-    def get_entry(self, entry_id: int) -> Dict:
+    def get_entry(self, entry_id: int) -> dict:
         """
         Fetch a single entry.
 
@@ -595,7 +585,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def get_entries(self, **kwargs) -> Dict:
+    def get_entries(self, **kwargs) -> dict:
         """
         Fetch all entries.
 
@@ -617,7 +607,9 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def update_entry(self, entry_id: int, title: Optional[str] = None, content: Optional[str] = None) -> Dict:
+    def update_entry(
+        self, entry_id: int, title: str | None = None, content: str | None = None
+    ) -> dict:
         """
         Update an entry.
 
@@ -631,10 +623,12 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/entries/{entry_id}")
-        data = self._get_modification_params(**{
-            "title": title,
-            "content": content,
-        })
+        data = self._get_modification_params(
+            **{
+                "title": title,
+                "content": content,
+            }
+        )
         response = requests.put(
             endpoint,
             headers=self._headers,
@@ -646,15 +640,15 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def update_entries(self, entry_ids: List[int], status: str) -> bool:
+    def update_entries(self, entry_ids: list[int], status: str) -> bool:
         """
         Change the status of multiple entries.
 
         Args:
-            entry_ids (List[int]): The entry IDs.
+            entry_ids (list[int]): The entry IDs.
             status (str): The new status.
         Returns:
-            bool: True if the operation was successfully scheduled, False otherwise.
+            bool: True if the operation was successful, False otherwise.
         Raises:
             ClientError: If the request fails.
         """
@@ -671,7 +665,7 @@ class Client:
             self._handle_error_response(response)
         return True
 
-    def fetch_entry_content(self, entry_id: int) -> Dict:
+    def fetch_entry_content(self, entry_id: int) -> dict:
         """
         Scrape the entry original URL and returns the content.
 
@@ -697,7 +691,7 @@ class Client:
         Args:
             entry_id (int): The entry ID.
         Returns:
-            bool: True if the operation was successfully scheduled, False otherwise.
+            bool: True if the operation was successful, False otherwise.
         Raises:
             ClientError: If the request fails.
         """
@@ -716,7 +710,7 @@ class Client:
         Args:
             entry_id (int): The entry ID.
         Returns:
-            bool: True if the operation was successfully scheduled, False otherwise.
+            bool: True if the operation was successfully queued, False otherwise.
         Raises:
             ClientError: If the request fails.
         """
@@ -728,7 +722,53 @@ class Client:
             self._handle_error_response(response)
         return True
 
-    def get_categories(self) -> List[Dict]:
+    def get_enclosure(self, enclosure_id: int) -> dict:
+        """
+        Fetch an enclosure.
+
+        Args:
+            enclosure_id (int): The enclosure ID.
+        Returns:
+            A dictionary representing the enclosure.
+        Raises:
+            ClientError: If the request fails.
+        """
+        endpoint = self._get_endpoint(f"/enclosures/{enclosure_id}")
+        response = requests.get(
+            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        )
+        if response.status_code == 200:
+            return response.json()
+        self._handle_error_response(response)
+
+    def update_enclosure(
+        self, enclosure_id: int, media_progression: int | None = None
+    ) -> bool:
+        """
+        Update an enclosure.
+
+        Args:
+            enclosure_id (int): The enclosure ID.
+            media_progression (int): The progression of the media.
+        Returns:
+            bool: True if the operation was successful, False otherwise.
+        Raises:
+            ClientError: If the request fails.
+        """
+        endpoint = self._get_endpoint(f"/enclosures/{enclosure_id}")
+        data = self._get_modification_params(media_progression=media_progression)
+        response = requests.put(
+            endpoint,
+            headers=self._headers,
+            auth=self._auth,
+            data=json.dumps(data),
+            timeout=self._timeout,
+        )
+        if response.status_code != 204:
+            self._handle_error_response(response)
+        return True
+
+    def get_categories(self) -> list[dict]:
         """
         Fetch all categories.
 
@@ -745,7 +785,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def get_category_entry(self, category_id: int, entry_id: int) -> Dict:
+    def get_category_entry(self, category_id: int, entry_id: int) -> dict:
         """
         Fetch a single entry for a given category.
 
@@ -765,7 +805,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def get_category_entries(self, category_id: int, **kwargs) -> Dict:
+    def get_category_entries(self, category_id: int, **kwargs) -> dict:
         """
         Fetch all entries for a given category.
 
@@ -789,7 +829,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def create_category(self, title: str) -> Dict:
+    def create_category(self, title: str) -> dict:
         """
         Create a new category.
 
@@ -813,7 +853,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def update_category(self, category_id: int, title: str) -> Dict:
+    def update_category(self, category_id: int, title: str) -> dict:
         """
         Update a category.
 
@@ -870,12 +910,12 @@ class Client:
         if response.status_code != 204:
             self._handle_error_response(response)
 
-    def get_users(self) -> List[Dict]:
+    def get_users(self) -> list[dict]:
         """
         Fetch all users.
 
         Returns:
-            A list of dictionaries representing the users.
+            A list of dictionaries representing users.
         Raises:
             ClientError: If the request fails.
         """
@@ -887,7 +927,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def get_user_by_id(self, user_id: int) -> Dict:
+    def get_user_by_id(self, user_id: int) -> dict:
         """
         Fetch a user by its ID.
 
@@ -900,7 +940,7 @@ class Client:
         """
         return self._get_user(user_id)
 
-    def get_user_by_username(self, username: str) -> Dict:
+    def get_user_by_username(self, username: str) -> dict:
         """
         Fetch a user by its username.
 
@@ -913,7 +953,7 @@ class Client:
         """
         return self._get_user(username)
 
-    def _get_user(self, user_id_or_username: Union[str, int]) -> Dict:
+    def _get_user(self, user_id_or_username: str | int) -> dict:
         endpoint = self._get_endpoint(f"/users/{user_id_or_username}")
         response = requests.get(
             endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
@@ -922,7 +962,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def create_user(self, username: str, password: str, is_admin: bool = False) -> Dict:
+    def create_user(self, username: str, password: str, is_admin: bool = False) -> dict:
         """
         Create a new user.
 
@@ -948,7 +988,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def update_user(self, user_id: int, **kwargs) -> Dict:
+    def update_user(self, user_id: int, **kwargs) -> dict:
         """
         Update a user.
 
@@ -1004,7 +1044,7 @@ class Client:
         if response.status_code != 204:
             self._handle_error_response(response)
 
-    def get_feed_counters(self) -> Dict:
+    def get_feed_counters(self) -> dict:
         """
         Get the number of read and unread entries per feed.
 

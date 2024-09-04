@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 
 import json
+from typing import List, Optional, Union
 
 import requests
 
@@ -104,10 +105,10 @@ class Client:
     def __init__(
         self,
         base_url: str,
-        username: str | None = None,
-        password: str | None = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
         timeout: float = 30.0,
-        api_key: str | None = None,
+        api_key: Optional[str] = None,
         user_agent: str = DEFAULT_USER_AGENT,
     ):
         self._base_url = base_url
@@ -115,7 +116,7 @@ class Client:
         self._username = username
         self._password = password
         self._timeout = timeout
-        self._auth: tuple | None = (
+        self._auth: Optional[tuple] = (
             (self._username, self._password) if not api_key else None
         )
         self._headers = {"User-Agent": user_agent}
@@ -128,7 +129,7 @@ class Client:
 
         return f"{self._base_url}/v{self.API_VERSION}{path}"
 
-    def _get_params(self, **kwargs) -> dict | None:
+    def _get_params(self, **kwargs) -> Optional[dict]:
         params = {k: v for k, v in kwargs.items() if v}
         return params if len(params) > 0 else None
 
@@ -248,7 +249,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def discover(self, website_url: str, **kwargs) -> list[dict]:
+    def discover(self, website_url: str, **kwargs) -> List[dict]:
         """
         Discover feeds from a website.
 
@@ -274,7 +275,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def get_category_feeds(self, category_id: int) -> list[dict]:
+    def get_category_feeds(self, category_id: int) -> List[dict]:
         """
         Retrieves a list of feeds for a given category.
 
@@ -293,7 +294,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def get_feeds(self) -> list[dict]:
+    def get_feeds(self) -> List[dict]:
         """
         Retrieves a list of all feeds.
 
@@ -381,7 +382,7 @@ class Client:
         return self.get_feed_icon(feed_id)
 
     def create_feed(
-        self, feed_url: str, category_id: int | None = None, **kwargs
+        self, feed_url: str, category_id: Optional[int] = None, **kwargs
     ) -> int:
         """
         Create a new feed.
@@ -608,7 +609,7 @@ class Client:
         self._handle_error_response(response)
 
     def update_entry(
-        self, entry_id: int, title: str | None = None, content: str | None = None
+        self, entry_id: int, title: Optional[str] = None, content: Optional[str] = None
     ) -> dict:
         """
         Update an entry.
@@ -640,7 +641,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def update_entries(self, entry_ids: list[int], status: str) -> bool:
+    def update_entries(self, entry_ids: List[int], status: str) -> bool:
         """
         Change the status of multiple entries.
 
@@ -742,7 +743,7 @@ class Client:
         self._handle_error_response(response)
 
     def update_enclosure(
-        self, enclosure_id: int, media_progression: int | None = None
+        self, enclosure_id: int, media_progression: Optional[int] = None
     ) -> bool:
         """
         Update an enclosure.
@@ -768,7 +769,7 @@ class Client:
             self._handle_error_response(response)
         return True
 
-    def get_categories(self) -> list[dict]:
+    def get_categories(self) -> List[dict]:
         """
         Fetch all categories.
 
@@ -910,7 +911,7 @@ class Client:
         if response.status_code != 204:
             self._handle_error_response(response)
 
-    def get_users(self) -> list[dict]:
+    def get_users(self) -> List[dict]:
         """
         Fetch all users.
 
@@ -953,7 +954,7 @@ class Client:
         """
         return self._get_user(username)
 
-    def _get_user(self, user_id_or_username: str | int) -> dict:
+    def _get_user(self, user_id_or_username: Union[str, int]) -> dict:
         endpoint = self._get_endpoint(f"/users/{user_id_or_username}")
         response = requests.get(
             endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout

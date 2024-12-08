@@ -1237,6 +1237,28 @@ class TestMinifluxClient(unittest.TestCase):
             timeout=30.0,
         )
 
+    def test_get_integrations_status(self):
+        requests = _get_request_mock()
+        expected_result = {"has_integrations": True}
+
+        response = mock.Mock()
+        response.status_code = 200
+        response.json.return_value = expected_result
+
+        requests.get.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password")
+        result = client.get_integrations_status()
+
+        requests.get.assert_called_once_with(
+            "http://localhost/v1/integrations/status",
+            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
+            auth=("username", "password"),
+            timeout=30.0,
+        )
+
+        self.assertTrue(result)
+
     def test_not_found_response(self):
         requests = _get_request_mock()
 

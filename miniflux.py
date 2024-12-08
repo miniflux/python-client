@@ -1061,3 +1061,20 @@ class Client:
         if response.status_code == 200:
             return response.json()
         self._handle_error_response(response)
+
+    def get_integrations_status(self) -> bool:
+        """
+        Get the status of third-party integrations.
+
+        Returns:
+            bool: True if at least one third-party integration is enabled, False otherwise.
+        Raises:
+            ClientError: If the request fails.
+        """
+        endpoint = self._get_endpoint("/integrations/status")
+        response = requests.get(
+            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        )
+        if response.status_code == 200:
+            return response.json()["has_integrations"]
+        self._handle_error_response(response)

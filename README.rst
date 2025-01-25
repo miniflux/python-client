@@ -13,6 +13,8 @@ Requirements
 - Python >= 3.8
 - requests
 
+This project uses `Ruff <https://docs.astral.sh/ruff/>`_ for linting and formatting.
+
 Installation
 ------------
 

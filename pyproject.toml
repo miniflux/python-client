@@ -3,7 +3,7 @@ name = "miniflux"
 version = "1.1.2"
 description = "Client library for Miniflux"
 readme = "README.rst"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 license = {file = "LICENSE.txt"}
 keywords = ["rss", "atom", "rdf", "jsonfeed", "feed", "miniflux"]
 authors = [
@@ -13,7 +13,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",

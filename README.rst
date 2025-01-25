@@ -10,7 +10,7 @@ Requirements
 ------------
 
 - Miniflux >= 2.0.49
-- Python >= 3.7
+- Python >= 3.8
 - requests
 
 Installation

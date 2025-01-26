@@ -1291,12 +1291,12 @@ class TestMinifluxClient(unittest.TestCase):
         session = mock.Mock()
         session.get.return_value = response
 
-        with (
-            miniflux.Client("http://localhost", "username", "password", session=session) as client,
-            self.assertRaises(ServerError)
-        ):
-            client.get_version()
-        
+        with miniflux.Client(
+            "http://localhost", "username", "password", session=session
+        ) as client:
+            with self.assertRaises(ServerError):
+                client.get_version()
+
         session.close.assert_called()
 
 

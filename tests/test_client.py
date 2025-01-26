@@ -1274,3 +1274,29 @@ class TestMinifluxClient(unittest.TestCase):
 
         with self.assertRaises(ServerError):
             client.get_version()
+
+    def test_session_closed(self):
+        session = mock.Mock()
+
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
+        client.close()
+
+        session.close.assert_called()
+
+    def test_context_manager_exit_on_error(self):
+        response = mock.Mock()
+        response.status_code = 500
+        response.json.return_value = {"error_message": "Server error"}
+
+        session = mock.Mock()
+        session.get.return_value = response
+
+        with (
+            miniflux.Client("http://localhost", "username", "password", session=session) as client,
+            self.assertRaises(ServerError)
+        ):
+            client.get_version()
+        
+        session.close.assert_called()
+
+

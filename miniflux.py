@@ -126,6 +126,12 @@ class Client:
         if auth is not None:
             self._session.auth = auth
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
     def _get_endpoint(self, path: str) -> str:
         if len(self._base_url) > 0 and self._base_url[-1:] == "/":
             self._base_url = self._base_url[:-1]
@@ -1053,3 +1059,9 @@ class Client:
         if response.status_code == 200:
             return response.json()["has_integrations"]
         self._handle_error_response(response)
+
+    def close(self) -> None:
+        """
+        Close the underlying session
+        """
+        self._session.close()

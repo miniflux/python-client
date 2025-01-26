@@ -2,7 +2,7 @@
 name = "miniflux"
 version = "1.1.2"
 description = "Client library for Miniflux"
-readme = "README.rst"
+readme = "README.md"
 requires-python = ">=3.8"
 license = {file = "LICENSE.txt"}
 keywords = ["rss", "atom", "rdf", "jsonfeed", "feed", "miniflux"]

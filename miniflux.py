@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2018-2024 Frederic Guillot
+# Copyright (c) Frederic Guillot
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -110,16 +110,16 @@ class Client:
         timeout: float = 30.0,
         api_key: Optional[str] = None,
         user_agent: str = DEFAULT_USER_AGENT,
-        session: requests.Session = requests.Session()
+        session: requests.Session = requests.Session(),
     ):
         self._base_url = base_url
         self._timeout = timeout
         self._session = session
 
-        auth : Optional[tuple] = (
+        auth: Optional[tuple] = (
             (username or "", password or "") if not api_key else None
         )
-        
+
         self._session.headers.update({"User-Agent": user_agent})
         if api_key:
             self._session.headers.update({"X-Auth-Token": api_key})
@@ -166,9 +166,7 @@ class Client:
             bool: True if the operation was successfully scheduled, False otherwise.
         """
         endpoint = self._get_endpoint("/flush-history")
-        response = self._session.delete(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.delete(endpoint, timeout=self._timeout)
         if response.status_code == 202:
             return True
         self._handle_error_response(response)
@@ -183,9 +181,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/version")
-        response = self._session.get(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.get(endpoint, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         self._handle_error_response(response)
@@ -200,9 +196,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/me")
-        response = self._session.get(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.get(endpoint, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         self._handle_error_response(response)
@@ -228,9 +222,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/export")
-        response = self._session.get(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.get(endpoint, timeout=self._timeout)
         if response.status_code == 200:
             return response.text
         self._handle_error_response(response)
@@ -292,9 +284,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/categories/{category_id}/feeds")
-        response = self._session.get(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.get(endpoint, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         self._handle_error_response(response)
@@ -309,9 +299,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/feeds")
-        response = self._session.get(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.get(endpoint, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         self._handle_error_response(response)
@@ -328,9 +316,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/feeds/{feed_id}")
-        response = self._session.get(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.get(endpoint, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         self._handle_error_response(response)
@@ -347,9 +333,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/feeds/{feed_id}/icon")
-        response = self._session.get(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.get(endpoint, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         self._handle_error_response(response)
@@ -366,9 +350,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/icons/{icon_id}")
-        response = self._session.get(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.get(endpoint, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         self._handle_error_response(response)
@@ -445,9 +427,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/feeds/refresh")
-        response = self._session.put(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.put(endpoint, timeout=self._timeout)
         if response.status_code >= 400:
             self._handle_error_response(response)
         return True
@@ -464,9 +444,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/feeds/{feed_id}/refresh")
-        response = self._session.put(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.put(endpoint, timeout=self._timeout)
         if response.status_code >= 400:
             self._handle_error_response(response)
         return True
@@ -483,9 +461,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/categories/{category_id}/refresh")
-        response = self._session.put(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.put(endpoint, timeout=self._timeout)
         if response.status_code >= 400:
             self._handle_error_response(response)
         return True
@@ -500,9 +476,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/feeds/{feed_id}")
-        response = self._session.delete(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.delete(endpoint, timeout=self._timeout)
         if response.status_code != 204:
             self._handle_error_response(response)
 
@@ -519,9 +493,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/feeds/{feed_id}/entries/{entry_id}")
-        response = self._session.get(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.get(endpoint, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         self._handle_error_response(response)
@@ -560,9 +532,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/feeds/{feed_id}/mark-all-as-read")
-        response = self._session.put(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.put(endpoint, timeout=self._timeout)
         if response.status_code != 204:
             self._handle_error_response(response)
 
@@ -578,9 +548,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/entries/{entry_id}")
-        response = self._session.get(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.get(endpoint, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         self._handle_error_response(response)
@@ -671,9 +639,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/entries/{entry_id}/fetch-content")
-        response = self._session.get(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.get(endpoint, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         self._handle_error_response(response)
@@ -690,9 +656,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/entries/{entry_id}/bookmark")
-        response = self._session.put(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.put(endpoint, timeout=self._timeout)
         if response.status_code >= 400:
             self._handle_error_response(response)
         return True
@@ -709,9 +673,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/entries/{entry_id}/save")
-        response = self._session.post(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.post(endpoint, timeout=self._timeout)
         if response.status_code != 202:
             self._handle_error_response(response)
         return True
@@ -728,9 +690,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/enclosures/{enclosure_id}")
-        response = self._session.get(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.get(endpoint, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         self._handle_error_response(response)
@@ -770,9 +730,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/categories")
-        response = self._session.get(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.get(endpoint, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         self._handle_error_response(response)
@@ -790,9 +748,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/categories/{category_id}/entries/{entry_id}")
-        response = self._session.get(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.get(endpoint, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         self._handle_error_response(response)
@@ -874,9 +830,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/categories/{category_id}")
-        response = self._session.delete(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.delete(endpoint, timeout=self._timeout)
         if response.status_code != 204:
             self._handle_error_response(response)
 
@@ -890,9 +844,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/categories/{category_id}/mark-all-as-read")
-        response = self._session.put(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.put(endpoint, timeout=self._timeout)
         if response.status_code != 204:
             self._handle_error_response(response)
 
@@ -906,9 +858,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/users")
-        response = self._session.get(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.get(endpoint, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         self._handle_error_response(response)
@@ -941,9 +891,7 @@ class Client:
 
     def _get_user(self, user_id_or_username: Union[str, int]) -> dict:
         endpoint = self._get_endpoint(f"/users/{user_id_or_username}")
-        response = self._session.get(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.get(endpoint, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         self._handle_error_response(response)
@@ -1004,9 +952,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/users/{user_id}")
-        response = self._session.delete(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.delete(endpoint, timeout=self._timeout)
         if response.status_code != 204:
             self._handle_error_response(response)
 
@@ -1020,9 +966,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/users/{user_id}/mark-all-as-read")
-        response = self._session.put(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.put(endpoint, timeout=self._timeout)
         if response.status_code != 204:
             self._handle_error_response(response)
 
@@ -1036,9 +980,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/feeds/counters")
-        response = self._session.get(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.get(endpoint, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         self._handle_error_response(response)
@@ -1053,9 +995,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/integrations/status")
-        response = self._session.get(
-            endpoint, timeout=self._timeout
-        )
+        response = self._session.get(endpoint, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()["has_integrations"]
         self._handle_error_response(response)

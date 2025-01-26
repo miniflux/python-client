@@ -34,6 +34,7 @@ from miniflux import (
     ResourceNotFound,
     ServerError,
 )
+import requests
 from requests.exceptions import Timeout
 
 
@@ -63,7 +64,7 @@ class TestMinifluxClient(unittest.TestCase):
         self.assertEqual(error.get_error_reason(), "status_code=404")
 
     def test_base_url_with_trailing_slash(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = [
             {"url": "http://example.org/feed", "title": "Example", "type": "RSS"}
         ]
@@ -72,46 +73,41 @@ class TestMinifluxClient(unittest.TestCase):
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.post.return_value = response
+        session.post = mock.Mock()
+        session.post.return_value = response
 
-        client = miniflux.Client("http://localhost/", "username", "password")
+        client = miniflux.Client("http://localhost/", "username", "password", session=session)
         result = client.discover("http://example.org/")
 
-        requests.post.assert_called_once_with(
+        session.post.assert_called_once_with(
             "http://localhost/v1/discover",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             data=mock.ANY,
             timeout=30.0,
         )
-
+        self.assertEqual(session.auth, ("username", "password"))
         self.assertEqual(result, expected_result)
 
     def test_flush_history(self):
-        requests = _get_request_mock()
+        session = requests.Session()
 
         response = mock.Mock()
         response.status_code = 202
 
-        requests.delete.return_value = response
+        session.delete = mock.Mock()
+        session.delete.return_value = response
 
-        client = miniflux.Client("http://localhost", api_key="secret")
+        client = miniflux.Client("http://localhost", api_key="secret", session=session)
         result = client.flush_history()
 
-        requests.delete.assert_called_once_with(
+        session.delete.assert_called_once_with(
             "http://localhost/v1/flush-history",
-            headers={
-                "User-Agent": miniflux.DEFAULT_USER_AGENT,
-                "X-Auth-Token": "secret",
-            },
-            auth=None,
             timeout=30.0,
         )
-
+        self.assertEqual(session.headers.get('X-Auth-Token'), 'secret')
         self.assertTrue(result)
 
     def test_get_version(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = {
             "version": "dev",
             "commit": "HEAD",
@@ -126,60 +122,56 @@ class TestMinifluxClient(unittest.TestCase):
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", api_key="secret")
+        client = miniflux.Client("http://localhost", api_key="secret", session=session)
         result = client.get_version()
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/version",
-            headers={
-                "User-Agent": miniflux.DEFAULT_USER_AGENT,
-                "X-Auth-Token": "secret",
-            },
-            auth=None,
             timeout=30.0,
         )
-
+        self.assertEqual(session.headers.get('X-Auth-Token'), 'secret')
         self.assertEqual(result, expected_result)
 
     def test_get_me(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = {"id": 123, "username": "foobar"}
 
         response = mock.Mock()
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.me()
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/me",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             timeout=30,
         )
 
         self.assertEqual(result, expected_result)
 
     def test_get_me_with_server_error(self):
-        requests = _get_request_mock()
+        session = requests.Session()
 
         response = mock.Mock()
         response.status_code = 500
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
 
         with self.assertRaises(ClientError):
             client.me()
 
     def test_discover(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = [
             {"url": "http://example.org/feed", "title": "Example", "type": "RSS"}
         ]
@@ -188,20 +180,19 @@ class TestMinifluxClient(unittest.TestCase):
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.post.return_value = response
+        session.post = mock.Mock()
+        session.post.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.discover("http://example.org/")
 
-        requests.post.assert_called_once_with(
+        session.post.assert_called_once_with(
             "http://localhost/v1/discover",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             data=mock.ANY,
             timeout=30,
         )
 
-        _, kwargs = requests.post.call_args
+        _, kwargs = session.post.call_args
         payload = json.loads(kwargs.get("data"))
 
         self.assertEqual(payload.get("url"), "http://example.org/")
@@ -210,7 +201,7 @@ class TestMinifluxClient(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
     def test_discover_with_credentials(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = [
             {"url": "http://example.org/feed", "title": "Example", "type": "RSS"}
         ]
@@ -219,9 +210,10 @@ class TestMinifluxClient(unittest.TestCase):
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.post.return_value = response
+        session.post = mock.Mock()
+        session.post.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.discover(
             "http://example.org/",
             username="foobar",
@@ -229,15 +221,13 @@ class TestMinifluxClient(unittest.TestCase):
             user_agent="Bot",
         )
 
-        requests.post.assert_called_once_with(
+        session.post.assert_called_once_with(
             "http://localhost/v1/discover",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             data=mock.ANY,
             timeout=30,
         )
 
-        _, kwargs = requests.post.call_args
+        _, kwargs = session.post.call_args
         payload = json.loads(kwargs.get("data"))
 
         self.assertEqual(payload.get("url"), "http://example.org/")
@@ -247,109 +237,106 @@ class TestMinifluxClient(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
     def test_discover_with_server_error(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = {"error_message": "some error"}
 
         response = mock.Mock()
         response.status_code = 500
         response.json.return_value = expected_result
 
-        requests.post.return_value = response
+        session.post = mock.Mock()
+        session.post.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
 
         with self.assertRaises(ClientError):
             client.discover("http://example.org/")
 
     def test_export(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = "OPML feed"
 
         response = mock.Mock()
         response.status_code = 200
         response.text = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.export()
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/export",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             timeout=30,
         )
 
         self.assertEqual(result, expected_result)
 
     def test_import(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         input_data = "my opml data"
 
         response = mock.Mock()
         response.status_code = 201
 
-        requests.post.return_value = response
+        session.post = mock.Mock()
+        session.post.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         client.import_feeds(input_data)
 
-        requests.post.assert_called_once_with(
+        session.post.assert_called_once_with(
             "http://localhost/v1/import",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             data=input_data,
-            auth=("username", "password"),
             timeout=30,
         )
 
     def test_import_failure(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         input_data = "my opml data"
 
         response = mock.Mock()
         response.status_code = 500
         response.json.return_value = {"error_message": "random error"}
 
-        requests.post.return_value = response
+        session.post = mock.Mock()
+        session.post.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
 
         with self.assertRaises(ClientError):
             client.import_feeds(input_data)
 
-        requests.post.assert_called_once_with(
+        session.post.assert_called_once_with(
             "http://localhost/v1/import",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
             data=input_data,
-            auth=("username", "password"),
             timeout=30,
         )
 
     def test_get_feed(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = {"id": 123, "title": "Example"}
 
         response = mock.Mock()
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_feed(123)
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/feeds/123",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             timeout=30,
         )
 
         self.assertEqual(result, expected_result)
 
     def test_get_feed_icon(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = {
             "id": 11,
             "mime_type": "image/x-icon",
@@ -360,22 +347,21 @@ class TestMinifluxClient(unittest.TestCase):
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_icon_by_feed_id(123)
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/feeds/123/icon",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             timeout=30.0,
         )
 
         self.assertEqual(result, expected_result)
 
     def test_get_icon(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = {
             "id": 11,
             "mime_type": "image/x-icon",
@@ -386,42 +372,40 @@ class TestMinifluxClient(unittest.TestCase):
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_icon(11)
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/icons/11",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             timeout=30.0,
         )
 
         self.assertEqual(result, expected_result)
 
     def test_create_feed(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = {"feed_id": 42}
 
         response = mock.Mock()
         response.status_code = 201
         response.json.return_value = expected_result
 
-        requests.post.return_value = response
+        session.post = mock.Mock()
+        session.post.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.create_feed("http://example.org/feed", 123)
 
-        requests.post.assert_called_once_with(
+        session.post.assert_called_once_with(
             "http://localhost/v1/feeds",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             data=mock.ANY,
             timeout=30,
         )
 
-        _, kwargs = requests.post.call_args
+        _, kwargs = session.post.call_args
         payload = json.loads(kwargs.get("data"))
 
         self.assertEqual(payload.get("feed_url"), "http://example.org/feed")
@@ -432,27 +416,26 @@ class TestMinifluxClient(unittest.TestCase):
         self.assertEqual(result, expected_result["feed_id"])
 
     def test_create_feed_with_no_category(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = {"feed_id": 42}
 
         response = mock.Mock()
         response.status_code = 201
         response.json.return_value = expected_result
 
-        requests.post.return_value = response
+        session.post = mock.Mock()
+        session.post.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.create_feed("http://example.org/feed")
 
-        requests.post.assert_called_once_with(
+        session.post.assert_called_once_with(
             "http://localhost/v1/feeds",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             data=mock.ANY,
             timeout=30.0,
         )
 
-        _, kwargs = requests.post.call_args
+        _, kwargs = session.post.call_args
         payload = json.loads(kwargs.get("data"))
 
         self.assertEqual(payload.get("feed_url"), "http://example.org/feed")
@@ -463,29 +446,28 @@ class TestMinifluxClient(unittest.TestCase):
         self.assertEqual(result, expected_result["feed_id"])
 
     def test_create_feed_with_credentials(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = {"feed_id": 42}
 
         response = mock.Mock()
         response.status_code = 201
         response.json.return_value = expected_result
 
-        requests.post.return_value = response
+        session.post = mock.Mock()
+        session.post.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.create_feed(
             "http://example.org/feed", 123, username="foobar", password="secret"
         )
 
-        requests.post.assert_called_once_with(
+        session.post.assert_called_once_with(
             "http://localhost/v1/feeds",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             data=mock.ANY,
             timeout=30,
         )
 
-        _, kwargs = requests.post.call_args
+        _, kwargs = session.post.call_args
         payload = json.loads(kwargs.get("data"))
 
         self.assertEqual(payload.get("feed_url"), "http://example.org/feed")
@@ -496,27 +478,26 @@ class TestMinifluxClient(unittest.TestCase):
         self.assertEqual(result, expected_result["feed_id"])
 
     def test_create_feed_with_crawler_enabled(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = {"feed_id": 42}
 
         response = mock.Mock()
         response.status_code = 201
         response.json.return_value = expected_result
 
-        requests.post.return_value = response
+        session.post = mock.Mock()
+        session.post.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.create_feed("http://example.org/feed", 123, crawler=True)
 
-        requests.post.assert_called_once_with(
+        session.post.assert_called_once_with(
             "http://localhost/v1/feeds",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             data=mock.ANY,
             timeout=30,
         )
 
-        _, kwargs = requests.post.call_args
+        _, kwargs = session.post.call_args
         payload = json.loads(kwargs.get("data"))
 
         self.assertEqual(payload.get("feed_url"), "http://example.org/feed")
@@ -527,29 +508,28 @@ class TestMinifluxClient(unittest.TestCase):
         self.assertEqual(result, expected_result["feed_id"])
 
     def test_create_feed_with_custom_user_agent_and_crawler_disabled(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = {"feed_id": 42}
 
         response = mock.Mock()
         response.status_code = 201
         response.json.return_value = expected_result
 
-        requests.post.return_value = response
+        session.post = mock.Mock()
+        session.post.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.create_feed(
             "http://example.org/feed", 123, crawler=False, user_agent="GoogleBot"
         )
 
-        requests.post.assert_called_once_with(
+        session.post.assert_called_once_with(
             "http://localhost/v1/feeds",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             data=mock.ANY,
             timeout=30,
         )
 
-        _, kwargs = requests.post.call_args
+        _, kwargs = session.post.call_args
         payload = json.loads(kwargs.get("data"))
 
         self.assertEqual(payload.get("feed_url"), "http://example.org/feed")
@@ -561,27 +541,26 @@ class TestMinifluxClient(unittest.TestCase):
         self.assertEqual(result, expected_result["feed_id"])
 
     def test_update_feed(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = {"id": 123, "crawler": True, "username": "test"}
 
         response = mock.Mock()
         response.status_code = 201
         response.json.return_value = expected_result
 
-        requests.put.return_value = response
+        session.put = mock.Mock()
+        session.put.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.update_feed(123, crawler=True, username="test")
 
-        requests.put.assert_called_once_with(
+        session.put.assert_called_once_with(
             "http://localhost/v1/feeds/123",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             data=mock.ANY,
             timeout=30,
         )
 
-        _, kwargs = requests.put.call_args
+        _, kwargs = session.put.call_args
         payload = json.loads(kwargs.get("data"))
 
         self.assertNotIn("feed_url", payload)
@@ -591,110 +570,105 @@ class TestMinifluxClient(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
     def test_refresh_all_feeds(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = True
 
         response = mock.Mock()
         response.status_code = 201
         response.json.return_value = expected_result
 
-        requests.put.return_value = response
+        session.put = mock.Mock()
+        session.put.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.refresh_all_feeds()
 
-        requests.put.assert_called_once_with(
+        session.put.assert_called_once_with(
             "http://localhost/v1/feeds/refresh",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             timeout=30,
         )
 
         assert result == expected_result
 
     def test_refresh_feed(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = True
 
         response = mock.Mock()
         response.status_code = 201
         response.json.return_value = expected_result
 
-        requests.put.return_value = response
+        session.put = mock.Mock()
+        session.put.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.refresh_feed(123)
 
-        requests.put.assert_called_once_with(
+        session.put.assert_called_once_with(
             "http://localhost/v1/feeds/123/refresh",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             timeout=30,
         )
 
         assert result == expected_result
 
     def test_refresh_category(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = True
 
         response = mock.Mock()
         response.status_code = 201
         response.json.return_value = expected_result
 
-        requests.put.return_value = response
+        session.put = mock.Mock()
+        session.put.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.refresh_category(123)
 
-        requests.put.assert_called_once_with(
+        session.put.assert_called_once_with(
             "http://localhost/v1/categories/123/refresh",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             timeout=30,
         )
 
         assert result == expected_result
 
     def test_get_feed_entry(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = {}
 
         response = mock.Mock()
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_feed_entry(123, 456)
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/feeds/123/entries/456",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             timeout=30,
         )
 
         assert result == expected_result
 
     def test_get_feed_entries(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = []
 
         response = mock.Mock()
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_feed_entries(123)
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/feeds/123/entries",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             params=None,
             timeout=30,
         )
@@ -702,22 +676,21 @@ class TestMinifluxClient(unittest.TestCase):
         assert result == expected_result
 
     def test_get_feed_entries_with_direction_param(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = []
 
         response = mock.Mock()
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_feed_entries(123, direction="asc")
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/feeds/123/entries",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             params={"direction": "asc"},
             timeout=30,
         )
@@ -725,129 +698,117 @@ class TestMinifluxClient(unittest.TestCase):
         assert result == expected_result
 
     def test_mark_feed_as_read(self):
-        requests = _get_request_mock()
+        session = requests.Session()
 
         response = mock.Mock()
         response.status_code = 204
 
-        requests.put.return_value = response
+        session.put = mock.Mock()
+        session.put.return_value = response
 
-        client = miniflux.Client("http://localhost", api_key="secret")
+        client = miniflux.Client("http://localhost", api_key="secret", session=session)
         client.mark_feed_entries_as_read(123)
 
-        requests.put.assert_called_once_with(
+        session.put.assert_called_once_with(
             "http://localhost/v1/feeds/123/mark-all-as-read",
-            headers={
-                "User-Agent": miniflux.DEFAULT_USER_AGENT,
-                "X-Auth-Token": "secret",
-            },
-            auth=None,
             timeout=30,
         )
+        self.assertEqual(session.headers.get('X-Auth-Token'), 'secret')
 
     def test_mark_category_entries_as_read(self):
-        requests = _get_request_mock()
+        session = requests.Session()
 
         response = mock.Mock()
         response.status_code = 204
 
-        requests.put.return_value = response
+        session.put = mock.Mock()
+        session.put.return_value = response
 
-        client = miniflux.Client("http://localhost", api_key="secret")
+        client = miniflux.Client("http://localhost", api_key="secret", session=session)
         client.mark_category_entries_as_read(123)
 
-        requests.put.assert_called_once_with(
+        session.put.assert_called_once_with(
             "http://localhost/v1/categories/123/mark-all-as-read",
-            headers={
-                "User-Agent": miniflux.DEFAULT_USER_AGENT,
-                "X-Auth-Token": "secret",
-            },
-            auth=None,
             timeout=30,
         )
+        self.assertEqual(session.headers.get('X-Auth-Token'), 'secret')
 
     def test_mark_user_entries_as_read(self):
-        requests = _get_request_mock()
+        session = requests.Session()
 
         response = mock.Mock()
         response.status_code = 204
 
-        requests.put.return_value = response
+        session.put = mock.Mock()
+        session.put.return_value = response
 
-        client = miniflux.Client("http://localhost", api_key="secret")
+        client = miniflux.Client("http://localhost", api_key="secret", session=session)
         client.mark_user_entries_as_read(123)
 
-        requests.put.assert_called_once_with(
+        session.put.assert_called_once_with(
             "http://localhost/v1/users/123/mark-all-as-read",
-            headers={
-                "User-Agent": miniflux.DEFAULT_USER_AGENT,
-                "X-Auth-Token": "secret",
-            },
-            auth=None,
             timeout=30,
         )
+        self.assertEqual(session.headers.get('X-Auth-Token'), 'secret')
 
     def test_get_entry(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = []
 
         response = mock.Mock()
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_entry(123)
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/entries/123",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             timeout=30,
         )
 
         assert result == expected_result
 
     def test_fetch_entry_content(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = []
 
         response = mock.Mock()
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.fetch_entry_content(123)
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/entries/123/fetch-content",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             timeout=30,
         )
 
         assert result == expected_result
 
     def test_get_entries(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = []
 
         response = mock.Mock()
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_entries(status="unread", limit=10, offset=5)
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/entries",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             params=mock.ANY,
             timeout=30,
         )
@@ -856,22 +817,21 @@ class TestMinifluxClient(unittest.TestCase):
 
     def test_get_entries_with_before_param(self):
         param_value = int(time.time())
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = []
 
         response = mock.Mock()
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_entries(before=param_value)
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/entries",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             params={"before": param_value},
             timeout=30,
         )
@@ -879,22 +839,21 @@ class TestMinifluxClient(unittest.TestCase):
         assert result == expected_result
 
     def test_get_entries_with_starred_param(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = []
 
         response = mock.Mock()
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_entries(starred=True)
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/entries",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             params={"starred": True},
             timeout=30,
         )
@@ -902,22 +861,21 @@ class TestMinifluxClient(unittest.TestCase):
         assert result == expected_result
 
     def test_get_entries_with_starred_param_at_false(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = []
 
         response = mock.Mock()
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_entries(starred=False, after_entry_id=123)
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/entries",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             params={"after_entry_id": 123},
             timeout=30,
         )
@@ -925,85 +883,83 @@ class TestMinifluxClient(unittest.TestCase):
         assert result == expected_result
 
     def test_get_user_by_id(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = []
 
         response = mock.Mock()
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_user_by_id(123)
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/users/123",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             timeout=30,
         )
 
         assert result == expected_result
 
     def test_get_inexisting_user(self):
-        requests = _get_request_mock()
+        session = requests.Session()
 
         response = mock.Mock()
         response.status_code = 404
         response.json.return_value = {"error_message": "some error"}
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
 
         with self.assertRaises(ResourceNotFound):
             client.get_user_by_id(123)
 
     def test_get_user_by_username(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = []
 
         response = mock.Mock()
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_user_by_username("foobar")
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/users/foobar",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             timeout=30,
         )
 
         assert result == expected_result
 
     def test_update_user(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = {"id": 123, "theme": "Black", "language": "fr_FR"}
 
         response = mock.Mock()
         response.status_code = 201
         response.json.return_value = expected_result
 
-        requests.put.return_value = response
+        session.put = mock.Mock()
+        session.put.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.update_user(123, theme="black", language="fr_FR")
 
-        requests.put.assert_called_once_with(
+        session.put.assert_called_once_with(
             "http://localhost/v1/users/123",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             data=mock.ANY,
             timeout=30,
         )
 
-        _, kwargs = requests.put.call_args
+        _, kwargs = session.put.call_args
         payload = json.loads(kwargs.get("data"))
 
         self.assertNotIn("username", payload)
@@ -1013,103 +969,94 @@ class TestMinifluxClient(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
     def test_timeout(self):
-        requests = _get_request_mock()
-        requests.get.side_effect = Timeout()
+        session = requests.Session()
+        session.get = mock.Mock()
+        session.get.side_effect = Timeout()
 
-        client = miniflux.Client("http://localhost", "username", "password", 1.0)
+        client = miniflux.Client("http://localhost", "username", "password", 1.0, session=session)
         with self.assertRaises(Timeout):
             client.export()
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/export",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             timeout=1.0,
         )
 
     def test_api_key_auth(self):
-        requests = _get_request_mock()
+        session = requests.Session()
 
         response = mock.Mock()
         response.status_code = 200
         response.json.return_value = {}
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", api_key="secret")
+        client = miniflux.Client("http://localhost", api_key="secret", session=session)
         client.export()
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/export",
-            headers={
-                "User-Agent": miniflux.DEFAULT_USER_AGENT,
-                "X-Auth-Token": "secret",
-            },
-            auth=None,
             timeout=30.0,
         )
+        self.assertEqual(session.headers.get('X-Auth-Token'), 'secret')
 
     def test_save_entry(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = True
 
         response = mock.Mock()
         response.status_code = 202
-        requests.post.return_value = response
+        session.post = mock.Mock()
+        session.post.return_value = response
 
-        client = miniflux.Client("http://localhost", api_key="secret")
+        client = miniflux.Client("http://localhost", api_key="secret", session=session)
         result = client.save_entry(123)
 
-        requests.post.assert_called_once_with(
+        session.post.assert_called_once_with(
             "http://localhost/v1/entries/123/save",
-            headers={
-                "User-Agent": miniflux.DEFAULT_USER_AGENT,
-                "X-Auth-Token": "secret",
-            },
-            auth=None,
             timeout=30.0,
         )
-        assert result == expected_result
+        self.assertEqual(session.headers.get('X-Auth-Token'), 'secret')
+        self.assertEqual(result, expected_result)
 
     def test_get_category_entry(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = {}
 
         response = mock.Mock()
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_category_entry(123, 456)
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/categories/123/entries/456",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             timeout=30,
         )
 
         assert result == expected_result
 
     def test_get_category_entries(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = []
 
         response = mock.Mock()
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_category_entries(123)
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/categories/123/entries",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             params=None,
             timeout=30,
         )
@@ -1117,79 +1064,76 @@ class TestMinifluxClient(unittest.TestCase):
         assert result == expected_result
 
     def test_update_entry_title(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = {"id": 123, "title": "New title"}
 
         response = mock.Mock()
         response.status_code = 201
         response.json.return_value = expected_result
 
-        requests.put.return_value = response
+        session.put = mock.Mock()
+        session.put.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.update_entry(entry_id=123, title="New title")
 
-        requests.put.assert_called_once_with(
+        session.put.assert_called_once_with(
             "http://localhost/v1/entries/123",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             data=mock.ANY,
             timeout=30.0,
         )
 
-        _, kwargs = requests.put.call_args
+        _, kwargs = session.put.call_args
         payload = json.loads(kwargs.get("data"))
 
         self.assertEqual(payload.get("title"), "New title")
         self.assertEqual(result, expected_result)
 
     def test_update_entry_content(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = {"id": 123, "content": "New content"}
 
         response = mock.Mock()
         response.status_code = 201
         response.json.return_value = expected_result
 
-        requests.put.return_value = response
+        session.put = mock.Mock()
+        session.put.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.update_entry(entry_id=123, content="New content")
 
-        requests.put.assert_called_once_with(
+        session.put.assert_called_once_with(
             "http://localhost/v1/entries/123",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             data=mock.ANY,
             timeout=30.0,
         )
 
-        _, kwargs = requests.put.call_args
+        _, kwargs = session.put.call_args
         payload = json.loads(kwargs.get("data"))
 
         self.assertEqual(payload.get("content"), "New content")
         self.assertEqual(result, expected_result)
 
     def test_update_entries_status(self):
-        requests = _get_request_mock()
+        session = requests.Session()
 
         response = mock.Mock()
         response.status_code = 204
 
-        requests.put.return_value = response
+        session.put = mock.Mock()
+        session.put.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.update_entries(entry_ids=[123, 456], status="read")
 
-        requests.put.assert_called_once_with(
+        session.put.assert_called_once_with(
             "http://localhost/v1/entries",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             data=mock.ANY,
             timeout=30.0,
         )
 
-        _, kwargs = requests.put.call_args
+        _, kwargs = session.put.call_args
         payload = json.loads(kwargs.get("data"))
 
         self.assertEqual(payload.get("entry_ids"), [123, 456])
@@ -1197,139 +1141,162 @@ class TestMinifluxClient(unittest.TestCase):
         self.assertTrue(result)
 
     def test_get_enclosure(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = {"id": 123, "mime_type": "audio/mpeg"}
 
         response = mock.Mock()
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_enclosure(123)
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/enclosures/123",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             timeout=30.0,
         )
 
         self.assertEqual(result, expected_result)
 
     def test_update_enclosure(self):
-        requests = _get_request_mock()
+        session = requests.Session()
 
         response = mock.Mock()
         response.status_code = 204
 
-        requests.put.return_value = response
+        session.put = mock.Mock()
+        session.put.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         self.assertTrue(client.update_enclosure(123, media_progression=42))
 
-        requests.put.assert_called_once_with(
+        session.put.assert_called_once_with(
             "http://localhost/v1/enclosures/123",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             data=mock.ANY,
             timeout=30.0,
         )
 
     def test_get_integrations_status(self):
-        requests = _get_request_mock()
+        session = requests.Session()
         expected_result = {"has_integrations": True}
 
         response = mock.Mock()
         response.status_code = 200
         response.json.return_value = expected_result
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_integrations_status()
 
-        requests.get.assert_called_once_with(
+        session.get.assert_called_once_with(
             "http://localhost/v1/integrations/status",
-            headers={"User-Agent": miniflux.DEFAULT_USER_AGENT},
-            auth=("username", "password"),
             timeout=30.0,
         )
 
         self.assertTrue(result)
 
     def test_not_found_response(self):
-        requests = _get_request_mock()
+        session = requests.Session()
 
         response = mock.Mock()
         response.status_code = 404
         response.json.return_value = {"error_message": "Not found"}
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
 
         with self.assertRaises(ResourceNotFound):
             client.get_version()
 
     def test_unauthorized_response(self):
-        requests = _get_request_mock()
+        session = requests.Session()
 
         response = mock.Mock()
         response.status_code = 401
         response.json.return_value = {"error_message": "Unauthorized"}
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
 
         with self.assertRaises(AccessUnauthorized):
             client.get_version()
 
     def test_forbidden_response(self):
-        requests = _get_request_mock()
+        session = requests.Session()
 
         response = mock.Mock()
         response.status_code = 403
         response.json.return_value = {"error_message": "Forbidden"}
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
 
         with self.assertRaises(AccessForbidden):
             client.get_version()
 
     def test_bad_request_response(self):
-        requests = _get_request_mock()
+        session = requests.Session()
 
         response = mock.Mock()
         response.status_code = 400
         response.json.return_value = {"error_message": "Bad request"}
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
 
         with self.assertRaises(BadRequest):
             client.get_version()
 
     def test_server_error_response(self):
-        requests = _get_request_mock()
+        session = requests.Session()
 
         response = mock.Mock()
         response.status_code = 500
         response.json.return_value = {"error_message": "Server error"}
 
-        requests.get.return_value = response
+        session.get = mock.Mock()
+        session.get.return_value = response
 
-        client = miniflux.Client("http://localhost", "username", "password")
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
 
         with self.assertRaises(ServerError):
             client.get_version()
 
+    def test_session_closed(self):
+        session = mock.Mock()
 
-def _get_request_mock():
-    patcher = mock.patch("miniflux.requests")
-    return patcher.start()
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
+        client.close()
+
+        session.close.assert_called()
+
+    def test_context_manager_exit_on_error(self):
+        response = mock.Mock()
+        response.status_code = 500
+        response.json.return_value = {"error_message": "Server error"}
+
+        session = mock.Mock()
+        session.get.return_value = response
+
+        with miniflux.Client(
+            "http://localhost", "username", "password", session=session
+        ) as client:
+            with self.assertRaises(ServerError):
+                client.get_version()
+
+        session.close.assert_called()
+
+

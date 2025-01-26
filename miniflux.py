@@ -110,18 +110,27 @@ class Client:
         timeout: float = 30.0,
         api_key: Optional[str] = None,
         user_agent: str = DEFAULT_USER_AGENT,
+        session: requests.Session = requests.Session()
     ):
         self._base_url = base_url
-        self._api_key = api_key
-        self._username = username
-        self._password = password
         self._timeout = timeout
-        self._auth: Optional[tuple] = (
-            (self._username, self._password) if not api_key else None
+        self._session = session
+
+        auth : Optional[tuple] = (
+            (username or "", password or "") if not api_key else None
         )
-        self._headers = {"User-Agent": user_agent}
+        
+        self._session.headers.update({"User-Agent": user_agent})
         if api_key:
-            self._headers["X-Auth-Token"] = api_key
+            self._session.headers.update({"X-Auth-Token": api_key})
+        if auth is not None:
+            self._session.auth = auth
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
 
     def _get_endpoint(self, path: str) -> str:
         if len(self._base_url) > 0 and self._base_url[-1:] == "/":
@@ -157,8 +166,8 @@ class Client:
             bool: True if the operation was successfully scheduled, False otherwise.
         """
         endpoint = self._get_endpoint("/flush-history")
-        response = requests.delete(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.delete(
+            endpoint, timeout=self._timeout
         )
         if response.status_code == 202:
             return True
@@ -174,8 +183,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/version")
-        response = requests.get(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.get(
+            endpoint, timeout=self._timeout
         )
         if response.status_code == 200:
             return response.json()
@@ -191,8 +200,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/me")
-        response = requests.get(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.get(
+            endpoint, timeout=self._timeout
         )
         if response.status_code == 200:
             return response.json()
@@ -219,8 +228,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/export")
-        response = requests.get(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.get(
+            endpoint, timeout=self._timeout
         )
         if response.status_code == 200:
             return response.text
@@ -238,11 +247,9 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/import")
-        response = requests.post(
+        response = self._session.post(
             endpoint,
-            headers=self._headers,
             data=opml,
-            auth=self._auth,
             timeout=self._timeout,
         )
         if response.status_code == 201:
@@ -264,10 +271,8 @@ class Client:
         data = dict(url=website_url)
         data.update(kwargs)
 
-        response = requests.post(
+        response = self._session.post(
             endpoint,
-            headers=self._headers,
-            auth=self._auth,
             data=json.dumps(data),
             timeout=self._timeout,
         )
@@ -287,8 +292,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/categories/{category_id}/feeds")
-        response = requests.get(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.get(
+            endpoint, timeout=self._timeout
         )
         if response.status_code == 200:
             return response.json()
@@ -304,8 +309,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/feeds")
-        response = requests.get(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.get(
+            endpoint, timeout=self._timeout
         )
         if response.status_code == 200:
             return response.json()
@@ -323,8 +328,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/feeds/{feed_id}")
-        response = requests.get(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.get(
+            endpoint, timeout=self._timeout
         )
         if response.status_code == 200:
             return response.json()
@@ -342,8 +347,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/feeds/{feed_id}/icon")
-        response = requests.get(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.get(
+            endpoint, timeout=self._timeout
         )
         if response.status_code == 200:
             return response.json()
@@ -361,8 +366,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/icons/{icon_id}")
-        response = requests.get(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.get(
+            endpoint, timeout=self._timeout
         )
         if response.status_code == 200:
             return response.json()
@@ -399,10 +404,8 @@ class Client:
         data = dict(feed_url=feed_url, category_id=category_id)
         data.update(kwargs)
 
-        response = requests.post(
+        response = self._session.post(
             endpoint,
-            headers=self._headers,
-            auth=self._auth,
             data=json.dumps(data),
             timeout=self._timeout,
         )
@@ -423,10 +426,8 @@ class Client:
         """
         endpoint = self._get_endpoint(f"/feeds/{feed_id}")
         data = self._get_modification_params(**kwargs)
-        response = requests.put(
+        response = self._session.put(
             endpoint,
-            headers=self._headers,
-            auth=self._auth,
             data=json.dumps(data),
             timeout=self._timeout,
         )
@@ -444,8 +445,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/feeds/refresh")
-        response = requests.put(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.put(
+            endpoint, timeout=self._timeout
         )
         if response.status_code >= 400:
             self._handle_error_response(response)
@@ -463,8 +464,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/feeds/{feed_id}/refresh")
-        response = requests.put(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.put(
+            endpoint, timeout=self._timeout
         )
         if response.status_code >= 400:
             self._handle_error_response(response)
@@ -482,8 +483,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/categories/{category_id}/refresh")
-        response = requests.put(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.put(
+            endpoint, timeout=self._timeout
         )
         if response.status_code >= 400:
             self._handle_error_response(response)
@@ -499,8 +500,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/feeds/{feed_id}")
-        response = requests.delete(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.delete(
+            endpoint, timeout=self._timeout
         )
         if response.status_code != 204:
             self._handle_error_response(response)
@@ -518,8 +519,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/feeds/{feed_id}/entries/{entry_id}")
-        response = requests.get(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.get(
+            endpoint, timeout=self._timeout
         )
         if response.status_code == 200:
             return response.json()
@@ -538,10 +539,8 @@ class Client:
         """
         endpoint = self._get_endpoint(f"/feeds/{feed_id}/entries")
         params = self._get_params(**kwargs)
-        response = requests.get(
+        response = self._session.get(
             endpoint,
-            headers=self._headers,
-            auth=self._auth,
             params=params,
             timeout=self._timeout,
         )
@@ -561,8 +560,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/feeds/{feed_id}/mark-all-as-read")
-        response = requests.put(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.put(
+            endpoint, timeout=self._timeout
         )
         if response.status_code != 204:
             self._handle_error_response(response)
@@ -579,8 +578,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/entries/{entry_id}")
-        response = requests.get(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.get(
+            endpoint, timeout=self._timeout
         )
         if response.status_code == 200:
             return response.json()
@@ -597,10 +596,8 @@ class Client:
         """
         endpoint = self._get_endpoint("/entries")
         params = self._get_params(**kwargs)
-        response = requests.get(
+        response = self._session.get(
             endpoint,
-            headers=self._headers,
-            auth=self._auth,
             params=params,
             timeout=self._timeout,
         )
@@ -630,10 +627,8 @@ class Client:
                 "content": content,
             }
         )
-        response = requests.put(
+        response = self._session.put(
             endpoint,
-            headers=self._headers,
-            auth=self._auth,
             data=json.dumps(data),
             timeout=self._timeout,
         )
@@ -655,10 +650,8 @@ class Client:
         """
         endpoint = self._get_endpoint("/entries")
         data = {"entry_ids": entry_ids, "status": status}
-        response = requests.put(
+        response = self._session.put(
             endpoint,
-            headers=self._headers,
-            auth=self._auth,
             data=json.dumps(data),
             timeout=self._timeout,
         )
@@ -678,8 +671,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/entries/{entry_id}/fetch-content")
-        response = requests.get(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.get(
+            endpoint, timeout=self._timeout
         )
         if response.status_code == 200:
             return response.json()
@@ -697,8 +690,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/entries/{entry_id}/bookmark")
-        response = requests.put(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.put(
+            endpoint, timeout=self._timeout
         )
         if response.status_code >= 400:
             self._handle_error_response(response)
@@ -716,8 +709,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/entries/{entry_id}/save")
-        response = requests.post(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.post(
+            endpoint, timeout=self._timeout
         )
         if response.status_code != 202:
             self._handle_error_response(response)
@@ -735,8 +728,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/enclosures/{enclosure_id}")
-        response = requests.get(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.get(
+            endpoint, timeout=self._timeout
         )
         if response.status_code == 200:
             return response.json()
@@ -758,10 +751,8 @@ class Client:
         """
         endpoint = self._get_endpoint(f"/enclosures/{enclosure_id}")
         data = self._get_modification_params(media_progression=media_progression)
-        response = requests.put(
+        response = self._session.put(
             endpoint,
-            headers=self._headers,
-            auth=self._auth,
             data=json.dumps(data),
             timeout=self._timeout,
         )
@@ -779,8 +770,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/categories")
-        response = requests.get(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.get(
+            endpoint, timeout=self._timeout
         )
         if response.status_code == 200:
             return response.json()
@@ -799,8 +790,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/categories/{category_id}/entries/{entry_id}")
-        response = requests.get(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.get(
+            endpoint, timeout=self._timeout
         )
         if response.status_code == 200:
             return response.json()
@@ -819,10 +810,8 @@ class Client:
         """
         endpoint = self._get_endpoint(f"/categories/{category_id}/entries")
         params = self._get_params(**kwargs)
-        response = requests.get(
+        response = self._session.get(
             endpoint,
-            headers=self._headers,
-            auth=self._auth,
             params=params,
             timeout=self._timeout,
         )
@@ -843,10 +832,8 @@ class Client:
         """
         endpoint = self._get_endpoint("/categories")
         data = {"title": title}
-        response = requests.post(
+        response = self._session.post(
             endpoint,
-            headers=self._headers,
-            auth=self._auth,
             data=json.dumps(data),
             timeout=self._timeout,
         )
@@ -868,10 +855,8 @@ class Client:
         """
         endpoint = self._get_endpoint(f"/categories/{category_id}")
         data = {"id": category_id, "title": title}
-        response = requests.put(
+        response = self._session.put(
             endpoint,
-            headers=self._headers,
-            auth=self._auth,
             data=json.dumps(data),
             timeout=self._timeout,
         )
@@ -889,8 +874,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/categories/{category_id}")
-        response = requests.delete(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.delete(
+            endpoint, timeout=self._timeout
         )
         if response.status_code != 204:
             self._handle_error_response(response)
@@ -905,8 +890,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/categories/{category_id}/mark-all-as-read")
-        response = requests.put(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.put(
+            endpoint, timeout=self._timeout
         )
         if response.status_code != 204:
             self._handle_error_response(response)
@@ -921,8 +906,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/users")
-        response = requests.get(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.get(
+            endpoint, timeout=self._timeout
         )
         if response.status_code == 200:
             return response.json()
@@ -956,8 +941,8 @@ class Client:
 
     def _get_user(self, user_id_or_username: Union[str, int]) -> dict:
         endpoint = self._get_endpoint(f"/users/{user_id_or_username}")
-        response = requests.get(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.get(
+            endpoint, timeout=self._timeout
         )
         if response.status_code == 200:
             return response.json()
@@ -978,10 +963,8 @@ class Client:
         """
         endpoint = self._get_endpoint("/users")
         data = {"username": username, "password": password, "is_admin": is_admin}
-        response = requests.post(
+        response = self._session.post(
             endpoint,
-            headers=self._headers,
-            auth=self._auth,
             data=json.dumps(data),
             timeout=self._timeout,
         )
@@ -1002,10 +985,8 @@ class Client:
         """
         endpoint = self._get_endpoint(f"/users/{user_id}")
         data = self._get_modification_params(**kwargs)
-        response = requests.put(
+        response = self._session.put(
             endpoint,
-            headers=self._headers,
-            auth=self._auth,
             data=json.dumps(data),
             timeout=self._timeout,
         )
@@ -1023,8 +1004,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/users/{user_id}")
-        response = requests.delete(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.delete(
+            endpoint, timeout=self._timeout
         )
         if response.status_code != 204:
             self._handle_error_response(response)
@@ -1039,8 +1020,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/users/{user_id}/mark-all-as-read")
-        response = requests.put(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.put(
+            endpoint, timeout=self._timeout
         )
         if response.status_code != 204:
             self._handle_error_response(response)
@@ -1055,8 +1036,8 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/feeds/counters")
-        response = requests.get(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.get(
+            endpoint, timeout=self._timeout
         )
         if response.status_code == 200:
             return response.json()
@@ -1072,9 +1053,15 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/integrations/status")
-        response = requests.get(
-            endpoint, headers=self._headers, auth=self._auth, timeout=self._timeout
+        response = self._session.get(
+            endpoint, timeout=self._timeout
         )
         if response.status_code == 200:
             return response.json()["has_integrations"]
         self._handle_error_response(response)
+
+    def close(self) -> None:
+        """
+        Close the underlying session
+        """
+        self._session.close()

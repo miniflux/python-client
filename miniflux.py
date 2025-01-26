@@ -123,7 +123,7 @@ class Client:
         self._session.headers.update({"User-Agent": user_agent})
         if api_key:
             self._session.headers.update({"X-Auth-Token": api_key})
-        if auth != None:
+        if auth is not None:
             self._session.auth = auth
 
     def _get_endpoint(self, path: str) -> str:

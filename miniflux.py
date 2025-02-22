@@ -112,19 +112,45 @@ class Client:
         user_agent: str = DEFAULT_USER_AGENT,
         session: requests.Session = requests.Session(),
     ):
-        self._base_url = base_url
+        """
+        Initializes the Miniflux API client.
+
+        Args:
+            base_url (str): The base URL of the Miniflux API. Must start with "http://" or "https://".
+            username (Optional[str]): The username for basic authentication.
+                                      Required if `api_key` is not provided.
+            password (Optional[str]): The password for basic authentication.
+                                      Required if `api_key` is not provided.
+            timeout (float): The timeout for API requests in seconds. Default is 30.0 seconds.
+            api_key (Optional[str]): The API key for authentication.
+                                     If provided, takes precedence over `username` and `password`.
+            user_agent (str): The User-Agent string to use for API requests.
+                              Default is "Miniflux Python Client Library".
+            session (requests.Session): A custom requests session to use for API requests.
+
+        Raises:
+            ValueError: If `base_url` is not a valid URL starting with "http://" or "https://".
+            ValueError: If neither `api_key` nor both `username` and `password` are provided.
+        """
+        if not base_url.startswith(("http://", "https://")):
+            raise ValueError(
+                "base_url must be a valid URL starting with http:// or https://"
+            )
+
+        if not api_key and not (username and password):
+            raise ValueError(
+                "Either api_key or both username and password must be provided"
+            )
+
+        self._base_url = base_url.rstrip("/")
         self._timeout = timeout
         self._session = session
-
-        auth: Optional[tuple] = (
-            (username or "", password or "") if not api_key else None
-        )
 
         self._session.headers.update({"User-Agent": user_agent})
         if api_key:
             self._session.headers.update({"X-Auth-Token": api_key})
-        if auth is not None:
-            self._session.auth = auth
+        elif username and password:
+            self._session.auth = (username, password)
 
     def __enter__(self):
         return self
@@ -133,9 +159,6 @@ class Client:
         self.close()
 
     def _get_endpoint(self, path: str) -> str:
-        if len(self._base_url) > 0 and self._base_url[-1:] == "/":
-            self._base_url = self._base_url[:-1]
-
         return f"{self._base_url}/v{self.API_VERSION}{path}"
 
     def _get_params(self, **kwargs) -> Optional[dict]:

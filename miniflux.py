@@ -133,14 +133,10 @@ class Client:
             ValueError: If neither `api_key` nor both `username` and `password` are provided.
         """
         if not base_url.startswith(("http://", "https://")):
-            raise ValueError(
-                "base_url must be a valid URL starting with http:// or https://"
-            )
+            raise ValueError("base_url must be a valid URL starting with http:// or https://")
 
         if not api_key and not (username and password):
-            raise ValueError(
-                "Either api_key or both username and password must be provided"
-            )
+            raise ValueError("Either api_key or both username and password must be provided")
 
         self._base_url = base_url.rstrip("/")
         self._timeout = timeout
@@ -391,9 +387,7 @@ class Client:
         """
         return self.get_feed_icon(feed_id)
 
-    def create_feed(
-        self, feed_url: str, category_id: Optional[int] = None, **kwargs
-    ) -> int:
+    def create_feed(self, feed_url: str, category_id: Optional[int] = None, **kwargs) -> int:
         """
         Create a new feed.
 
@@ -596,9 +590,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def update_entry(
-        self, entry_id: int, title: Optional[str] = None, content: Optional[str] = None
-    ) -> dict:
+    def update_entry(self, entry_id: int, title: Optional[str] = None, content: Optional[str] = None) -> dict:
         """
         Update an entry.
 
@@ -718,9 +710,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def update_enclosure(
-        self, enclosure_id: int, media_progression: Optional[int] = None
-    ) -> bool:
+    def update_enclosure(self, enclosure_id: int, media_progression: Optional[int] = None) -> bool:
         """
         Update an enclosure.
 
@@ -1022,6 +1012,57 @@ class Client:
         if response.status_code == 200:
             return response.json()["has_integrations"]
         self._handle_error_response(response)
+
+    def get_api_keys(self) -> List[dict]:
+        """
+        Get all API keys for the current user.
+
+        Returns:
+            List[dict]: A list of API keys.
+        Raises:
+            ClientError: If the request fails.
+        """
+        endpoint = self._get_endpoint("/api-keys")
+        response = self._session.get(endpoint, timeout=self._timeout)
+        if response.status_code == 200:
+            return response.json()
+        self._handle_error_response(response)
+
+    def create_api_key(self, description: str) -> dict:
+        """
+        Create a new API key.
+
+        Args:
+            description (str): The description for the API key.
+        Returns:
+            dict: The created API key.
+        Raises:
+            ClientError: If the request fails.
+        """
+        endpoint = self._get_endpoint("/api-keys")
+        data = {"description": description}
+        response = self._session.post(
+            endpoint,
+            data=json.dumps(data),
+            timeout=self._timeout,
+        )
+        if response.status_code == 201:
+            return response.json()
+        self._handle_error_response(response)
+
+    def delete_api_key(self, api_key_id: int) -> None:
+        """
+        Delete an API key.
+
+        Args:
+            api_key_id (int): The ID of the API key to delete.
+        Raises:
+            ClientError: If the request fails.
+        """
+        endpoint = self._get_endpoint(f"/api-keys/{api_key_id}")
+        response = self._session.delete(endpoint, timeout=self._timeout)
+        if response.status_code != 204:
+            self._handle_error_response(response)
 
     def close(self) -> None:
         """

@@ -49,6 +49,14 @@ class TestMinifluxClient(unittest.TestCase):
         self.assertEqual(error.status_code, 404)
         self.assertEqual(error.get_error_reason(), "some error")
 
+    def test_default_session_not_shared(self):
+        client_one = miniflux.Client("http://localhost", api_key="token-one")
+        client_two = miniflux.Client("http://localhost", api_key="token-two")
+
+        self.assertIsNot(client_one._session, client_two._session)
+        self.assertEqual(client_one._session.headers.get("X-Auth-Token"), "token-one")
+        self.assertEqual(client_two._session.headers.get("X-Auth-Token"), "token-two")
+
     def test_get_error_without_reason(self):
         response = mock.Mock()
         response.status_code = 404

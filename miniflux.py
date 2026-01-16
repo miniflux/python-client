@@ -111,7 +111,7 @@ class Client:
         timeout: float = 30.0,
         api_key: Optional[str] = None,
         user_agent: str = DEFAULT_USER_AGENT,
-        session: requests.Session = requests.Session(),
+        session: Optional[requests.Session] = None,
     ):
         """
         Initializes the Miniflux API client.
@@ -141,7 +141,7 @@ class Client:
 
         self._base_url = base_url.rstrip("/")
         self._timeout = timeout
-        self._session = session
+        self._session = session or requests.Session()
 
         self._session.headers.update({"User-Agent": user_agent})
         if api_key:

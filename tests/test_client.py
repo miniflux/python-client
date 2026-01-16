@@ -34,6 +34,7 @@ from miniflux import (
     ResourceNotFound,
     ServerError,
 )
+
 import requests
 from requests.exceptions import Timeout
 
@@ -42,6 +43,7 @@ class TestMinifluxClient(unittest.TestCase):
     def test_get_error_reason(self):
         response = mock.Mock()
         response.status_code = 404
+        response.headers = {"Content-Type": "application/json"}
         response.json.return_value = {"error_message": "some error"}
         error = ResourceNotFound(response)
         self.assertEqual(error.status_code, 404)
@@ -50,6 +52,7 @@ class TestMinifluxClient(unittest.TestCase):
     def test_get_error_without_reason(self):
         response = mock.Mock()
         response.status_code = 404
+        response.headers = {"Content-Type": "application/json"}
         response.json.return_value = {}
         error = ResourceNotFound(response)
         self.assertEqual(error.status_code, 404)
@@ -58,16 +61,37 @@ class TestMinifluxClient(unittest.TestCase):
     def test_get_error_with_bad_response(self):
         response = mock.Mock()
         response.status_code = 404
+        response.headers = {"Content-Type": "application/json"}
         response.json.return_value = None
         error = ResourceNotFound(response)
         self.assertEqual(error.status_code, 404)
         self.assertEqual(error.get_error_reason(), "status_code=404")
 
+    def test_get_error_reason_without_json_content_type(self):
+        response = mock.Mock()
+        response.status_code = 500
+        response.headers = {"Content-Type": "text/html"}
+        response.json = mock.Mock()
+
+        error = ServerError(response)
+
+        self.assertEqual(error.get_error_reason(), "status_code=500")
+        response.json.assert_not_called()
+
+    def test_get_error_reason_without_content_type_header(self):
+        response = mock.Mock()
+        response.status_code = 403
+        response.headers = {}
+        response.json = mock.Mock()
+
+        error = AccessForbidden(response)
+
+        self.assertEqual(error.get_error_reason(), "status_code=403")
+        response.json.assert_not_called()
+
     def test_base_url_with_trailing_slash(self):
         session = requests.Session()
-        expected_result = [
-            {"url": "http://example.org/feed", "title": "Example", "type": "RSS"}
-        ]
+        expected_result = [{"url": "http://example.org/feed", "title": "Example", "type": "RSS"}]
 
         response = mock.Mock()
         response.status_code = 200
@@ -76,9 +100,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.post = mock.Mock()
         session.post.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost/", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost/", "username", "password", session=session)
         result = client.discover("http://example.org/")
 
         session.post.assert_called_once_with(
@@ -148,9 +170,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.me()
 
         session.get.assert_called_once_with(
@@ -169,18 +189,14 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
 
         with self.assertRaises(ClientError):
             client.me()
 
     def test_discover(self):
         session = requests.Session()
-        expected_result = [
-            {"url": "http://example.org/feed", "title": "Example", "type": "RSS"}
-        ]
+        expected_result = [{"url": "http://example.org/feed", "title": "Example", "type": "RSS"}]
 
         response = mock.Mock()
         response.status_code = 200
@@ -189,9 +205,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.post = mock.Mock()
         session.post.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.discover("http://example.org/")
 
         session.post.assert_called_once_with(
@@ -210,9 +224,7 @@ class TestMinifluxClient(unittest.TestCase):
 
     def test_discover_with_credentials(self):
         session = requests.Session()
-        expected_result = [
-            {"url": "http://example.org/feed", "title": "Example", "type": "RSS"}
-        ]
+        expected_result = [{"url": "http://example.org/feed", "title": "Example", "type": "RSS"}]
 
         response = mock.Mock()
         response.status_code = 200
@@ -221,9 +233,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.post = mock.Mock()
         session.post.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.discover(
             "http://example.org/",
             username="foobar",
@@ -257,9 +267,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.post = mock.Mock()
         session.post.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
 
         with self.assertRaises(ClientError):
             client.discover("http://example.org/")
@@ -275,9 +283,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.export()
 
         session.get.assert_called_once_with(
@@ -297,9 +303,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.post = mock.Mock()
         session.post.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         client.import_feeds(input_data)
 
         session.post.assert_called_once_with(
@@ -319,9 +323,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.post = mock.Mock()
         session.post.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
 
         with self.assertRaises(ClientError):
             client.import_feeds(input_data)
@@ -343,9 +345,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_feed(123)
 
         session.get.assert_called_once_with(
@@ -370,9 +370,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_icon_by_feed_id(123)
 
         session.get.assert_called_once_with(
@@ -397,9 +395,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_icon(11)
 
         session.get.assert_called_once_with(
@@ -420,9 +416,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.post = mock.Mock()
         session.post.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.create_feed("http://example.org/feed", 123)
 
         session.post.assert_called_once_with(
@@ -452,9 +446,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.post = mock.Mock()
         session.post.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.create_feed("http://example.org/feed")
 
         session.post.assert_called_once_with(
@@ -484,12 +476,8 @@ class TestMinifluxClient(unittest.TestCase):
         session.post = mock.Mock()
         session.post.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
-        result = client.create_feed(
-            "http://example.org/feed", 123, username="foobar", password="secret"
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
+        result = client.create_feed("http://example.org/feed", 123, username="foobar", password="secret")
 
         session.post.assert_called_once_with(
             "http://localhost/v1/feeds",
@@ -518,9 +506,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.post = mock.Mock()
         session.post.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.create_feed("http://example.org/feed", 123, crawler=True)
 
         session.post.assert_called_once_with(
@@ -550,12 +536,8 @@ class TestMinifluxClient(unittest.TestCase):
         session.post = mock.Mock()
         session.post.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
-        result = client.create_feed(
-            "http://example.org/feed", 123, crawler=False, user_agent="GoogleBot"
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
+        result = client.create_feed("http://example.org/feed", 123, crawler=False, user_agent="GoogleBot")
 
         session.post.assert_called_once_with(
             "http://localhost/v1/feeds",
@@ -585,9 +567,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.put = mock.Mock()
         session.put.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.update_feed(123, crawler=True, username="test")
 
         session.put.assert_called_once_with(
@@ -616,9 +596,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.put = mock.Mock()
         session.put.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.refresh_all_feeds()
 
         session.put.assert_called_once_with(
@@ -639,9 +617,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.put = mock.Mock()
         session.put.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.refresh_feed(123)
 
         session.put.assert_called_once_with(
@@ -662,9 +638,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.put = mock.Mock()
         session.put.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.refresh_category(123)
 
         session.put.assert_called_once_with(
@@ -685,9 +659,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_feed_entry(123, 456)
 
         session.get.assert_called_once_with(
@@ -708,9 +680,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_feed_entries(123)
 
         session.get.assert_called_once_with(
@@ -732,9 +702,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_feed_entries(123, direction="asc")
 
         session.get.assert_called_once_with(
@@ -756,9 +724,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.post = mock.Mock()
         session.post.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.import_entry(
             123,
             url="http://example.org/article.html",
@@ -794,9 +760,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.post = mock.Mock()
         session.post.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.import_entry(
             123,
             url="http://example.org/article.html",
@@ -826,9 +790,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.post = mock.Mock()
         session.post.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.import_entry(123, url="http://example.org/article.html")
 
         session.post.assert_called_once_with(
@@ -845,9 +807,7 @@ class TestMinifluxClient(unittest.TestCase):
 
     def test_import_entry_without_url(self):
         session = requests.Session()
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
 
         with self.assertRaises(ValueError):
             client.import_entry(123, url="")
@@ -917,9 +877,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_entry(123)
 
         session.get.assert_called_once_with(
@@ -940,9 +898,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.fetch_entry_content(123)
 
         session.get.assert_called_once_with(
@@ -963,9 +919,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_entries(status="unread", limit=10, offset=5)
 
         session.get.assert_called_once_with(
@@ -988,9 +942,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_entries(before=param_value)
 
         session.get.assert_called_once_with(
@@ -1012,9 +964,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_entries(starred=True)
 
         session.get.assert_called_once_with(
@@ -1036,9 +986,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_entries(starred=False, after_entry_id=123)
 
         session.get.assert_called_once_with(
@@ -1060,9 +1008,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_user_by_id(123)
 
         session.get.assert_called_once_with(
@@ -1082,9 +1028,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
 
         with self.assertRaises(ResourceNotFound):
             client.get_user_by_id(123)
@@ -1100,9 +1044,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_user_by_username("foobar")
 
         session.get.assert_called_once_with(
@@ -1123,9 +1065,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.put = mock.Mock()
         session.put.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.update_user(123, theme="black", language="fr_FR")
 
         session.put.assert_called_once_with(
@@ -1148,9 +1088,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.side_effect = Timeout()
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", 1.0, session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", 1.0, session=session)
         with self.assertRaises(Timeout):
             client.export()
 
@@ -1208,9 +1146,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_category_entry(123, 456)
 
         session.get.assert_called_once_with(
@@ -1231,9 +1167,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_category_entries(123)
 
         session.get.assert_called_once_with(
@@ -1255,9 +1189,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.put = mock.Mock()
         session.put.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.update_entry(entry_id=123, title="New title")
 
         session.put.assert_called_once_with(
@@ -1283,9 +1215,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.put = mock.Mock()
         session.put.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.update_entry(entry_id=123, content="New content")
 
         session.put.assert_called_once_with(
@@ -1309,9 +1239,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.put = mock.Mock()
         session.put.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.update_entries(entry_ids=[123, 456], status="read")
 
         session.put.assert_called_once_with(
@@ -1338,9 +1266,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_enclosure(123)
 
         session.get.assert_called_once_with(
@@ -1359,9 +1285,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.put = mock.Mock()
         session.put.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         self.assertTrue(client.update_enclosure(123, media_progression=42))
 
         session.put.assert_called_once_with(
@@ -1381,9 +1305,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         result = client.get_integrations_status()
 
         session.get.assert_called_once_with(
@@ -1464,9 +1386,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
 
         with self.assertRaises(ResourceNotFound):
             client.get_version()
@@ -1481,9 +1401,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
 
         with self.assertRaises(AccessUnauthorized):
             client.get_version()
@@ -1498,9 +1416,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
 
         with self.assertRaises(AccessForbidden):
             client.get_version()
@@ -1515,9 +1431,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
 
         with self.assertRaises(BadRequest):
             client.get_version()
@@ -1532,9 +1446,7 @@ class TestMinifluxClient(unittest.TestCase):
         session.get = mock.Mock()
         session.get.return_value = response
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
 
         with self.assertRaises(ServerError):
             client.get_version()
@@ -1542,9 +1454,7 @@ class TestMinifluxClient(unittest.TestCase):
     def test_session_closed(self):
         session = mock.Mock()
 
-        client = miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        )
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
         client.close()
 
         session.close.assert_called()
@@ -1557,9 +1467,7 @@ class TestMinifluxClient(unittest.TestCase):
         session = mock.Mock()
         session.get.return_value = response
 
-        with miniflux.Client(
-            "http://localhost", "username", "password", session=session
-        ) as client:
+        with miniflux.Client("http://localhost", "username", "password", session=session) as client:
             with self.assertRaises(ServerError):
                 client.get_version()
 

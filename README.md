@@ -62,6 +62,9 @@ entries = client.get_entries(category_id=456, status=['read', 'unread'])
 # Update entry title and content
 client.update_entry(entry_id=1234, title="New title", content="New content")
 
+# Import an entry with a Unix timestamp
+client.import_entry(feed_id=123, url="https://example.org/article", published_at=1736200000)
+
 # Update a feed category
 client.update_feed(123, category_id=456)
 
@@ -136,6 +139,7 @@ The following methods are available on the `miniflux.Client` object:
 - `flush_history()`
 - `get_feed_entry(feed_id: int, entry_id: int)`
 - `get_feed_entries(feed_id: int, **kwargs)`
+- `import_entry(feed_id: int, url: str, **kwargs)`
 - `mark_feed_entries_as_read(feed_id: int)`
 - `get_entry(entry_id: int)`
 - `get_entries(**kwargs)`

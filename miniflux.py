@@ -133,10 +133,14 @@ class Client:
             ValueError: If neither `api_key` nor both `username` and `password` are provided.
         """
         if not base_url.startswith(("http://", "https://")):
-            raise ValueError("base_url must be a valid URL starting with http:// or https://")
+            raise ValueError(
+                "base_url must be a valid URL starting with http:// or https://"
+            )
 
         if not api_key and not (username and password):
-            raise ValueError("Either api_key or both username and password must be provided")
+            raise ValueError(
+                "Either api_key or both username and password must be provided"
+            )
 
         self._base_url = base_url.rstrip("/")
         self._timeout = timeout
@@ -387,7 +391,9 @@ class Client:
         """
         return self.get_feed_icon(feed_id)
 
-    def create_feed(self, feed_url: str, category_id: Optional[int] = None, **kwargs) -> int:
+    def create_feed(
+        self, feed_url: str, category_id: Optional[int] = None, **kwargs
+    ) -> int:
         """
         Create a new feed.
 
@@ -537,6 +543,69 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
+    def import_entry(
+        self,
+        feed_id: int,
+        url: str,
+        title: Optional[str] = None,
+        author: Optional[str] = None,
+        content: Optional[str] = None,
+        published_at: Optional[int] = None,
+        status: Optional[str] = None,
+        starred: Optional[bool] = None,
+        tags: Optional[List[str]] = None,
+        external_id: Optional[str] = None,
+        comments_url: Optional[str] = None,
+    ) -> dict:
+        """
+        Import an entry into the given feed.
+
+        Args:
+            feed_id (int): The feed ID.
+            url (str): The entry URL (required by the API).
+            title (str): The entry title.
+            author (str): The entry author.
+            content (str): The entry content.
+            published_at (int): The publication date as a Unix timestamp.
+            status (str): The entry status (read, unread or removed).
+            starred (bool): Whether the entry is starred.
+            tags (list[str]): Optional list of tags.
+            external_id (str): Optional external identifier.
+            comments_url (str): Optional comments URL.
+        Returns:
+            dict: The created entry identifier or existing entry identifier.
+        Raises:
+            ValueError: If the URL is empty.
+            ClientError: If the request fails.
+        """
+        if not url:
+            raise ValueError("url is required")
+
+        endpoint = self._get_endpoint(f"/feeds/{feed_id}/entries/import")
+        data = self._get_modification_params(
+            **{
+                "url": url,
+                "title": title,
+                "author": author,
+                "content": content,
+                "published_at": published_at,
+                "status": status,
+                "starred": starred,
+                "tags": tags,
+                "external_id": external_id,
+                "comments_url": comments_url,
+            }
+        )
+
+        response = self._session.post(
+            endpoint,
+            data=json.dumps(data),
+            timeout=self._timeout,
+        )
+        if response.status_code in (200, 201):
+            return response.json()
+        self._handle_error_response(response)
+
     def mark_feed_entries_as_read(self, feed_id: int) -> None:
         """
         Mark all entries as read in the given feed.
@@ -590,7 +659,9 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def update_entry(self, entry_id: int, title: Optional[str] = None, content: Optional[str] = None) -> dict:
+    def update_entry(
+        self, entry_id: int, title: Optional[str] = None, content: Optional[str] = None
+    ) -> dict:
         """
         Update an entry.
 
@@ -710,7 +781,9 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def update_enclosure(self, enclosure_id: int, media_progression: Optional[int] = None) -> bool:
+    def update_enclosure(
+        self, enclosure_id: int, media_progression: Optional[int] = None
+    ) -> bool:
         """
         Update an enclosure.
 

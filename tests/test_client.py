@@ -20,7 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import json
 import time
 import unittest
 from unittest import mock
@@ -113,7 +112,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.post.assert_called_once_with(
             "http://localhost/v1/discover",
-            data=mock.ANY,
+            json=mock.ANY,
             timeout=30.0,
         )
         self.assertEqual(session.auth, ("username", "password"))
@@ -218,12 +217,12 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.post.assert_called_once_with(
             "http://localhost/v1/discover",
-            data=mock.ANY,
+            json=mock.ANY,
             timeout=30,
         )
 
         _, kwargs = session.post.call_args
-        payload = json.loads(kwargs.get("data"))
+        payload = kwargs.get("json")
 
         self.assertEqual(payload.get("url"), "http://example.org/")
         self.assertIsNone(payload.get("username"))
@@ -251,12 +250,12 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.post.assert_called_once_with(
             "http://localhost/v1/discover",
-            data=mock.ANY,
+            json=mock.ANY,
             timeout=30,
         )
 
         _, kwargs = session.post.call_args
-        payload = json.loads(kwargs.get("data"))
+        payload = kwargs.get("json")
 
         self.assertEqual(payload.get("url"), "http://example.org/")
         self.assertEqual(payload.get("username"), "foobar")
@@ -429,12 +428,12 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.post.assert_called_once_with(
             "http://localhost/v1/feeds",
-            data=mock.ANY,
+            json=mock.ANY,
             timeout=30,
         )
 
         _, kwargs = session.post.call_args
-        payload = json.loads(kwargs.get("data"))
+        payload = kwargs.get("json")
 
         self.assertEqual(payload.get("feed_url"), "http://example.org/feed")
         self.assertEqual(payload.get("category_id"), 123)
@@ -459,12 +458,12 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.post.assert_called_once_with(
             "http://localhost/v1/feeds",
-            data=mock.ANY,
+            json=mock.ANY,
             timeout=30.0,
         )
 
         _, kwargs = session.post.call_args
-        payload = json.loads(kwargs.get("data"))
+        payload = kwargs.get("json")
 
         self.assertEqual(payload.get("feed_url"), "http://example.org/feed")
         self.assertIsNone(payload.get("category_id"))
@@ -489,12 +488,12 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.post.assert_called_once_with(
             "http://localhost/v1/feeds",
-            data=mock.ANY,
+            json=mock.ANY,
             timeout=30,
         )
 
         _, kwargs = session.post.call_args
-        payload = json.loads(kwargs.get("data"))
+        payload = kwargs.get("json")
 
         self.assertEqual(payload.get("feed_url"), "http://example.org/feed")
         self.assertEqual(payload.get("category_id"), 123)
@@ -519,12 +518,12 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.post.assert_called_once_with(
             "http://localhost/v1/feeds",
-            data=mock.ANY,
+            json=mock.ANY,
             timeout=30,
         )
 
         _, kwargs = session.post.call_args
-        payload = json.loads(kwargs.get("data"))
+        payload = kwargs.get("json")
 
         self.assertEqual(payload.get("feed_url"), "http://example.org/feed")
         self.assertEqual(payload.get("category_id"), 123)
@@ -549,12 +548,12 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.post.assert_called_once_with(
             "http://localhost/v1/feeds",
-            data=mock.ANY,
+            json=mock.ANY,
             timeout=30,
         )
 
         _, kwargs = session.post.call_args
-        payload = json.loads(kwargs.get("data"))
+        payload = kwargs.get("json")
 
         self.assertEqual(payload.get("feed_url"), "http://example.org/feed")
         self.assertEqual(payload.get("category_id"), 123)
@@ -580,12 +579,12 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.put.assert_called_once_with(
             "http://localhost/v1/feeds/123",
-            data=mock.ANY,
+            json=mock.ANY,
             timeout=30,
         )
 
         _, kwargs = session.put.call_args
-        payload = json.loads(kwargs.get("data"))
+        payload = kwargs.get("json")
 
         self.assertNotIn("feed_url", payload)
         self.assertNotIn("category_id", payload)
@@ -743,12 +742,12 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.post.assert_called_once_with(
             "http://localhost/v1/feeds/123/entries/import",
-            data=mock.ANY,
+            json=mock.ANY,
             timeout=30,
         )
 
         _, kwargs = session.post.call_args
-        payload = json.loads(kwargs.get("data"))
+        payload = kwargs.get("json")
 
         self.assertEqual(payload.get("url"), "http://example.org/article.html")
         self.assertEqual(payload.get("title"), "Entry Title")
@@ -777,12 +776,12 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.post.assert_called_once_with(
             "http://localhost/v1/feeds/123/entries/import",
-            data=mock.ANY,
+            json=mock.ANY,
             timeout=30,
         )
 
         _, kwargs = session.post.call_args
-        payload = json.loads(kwargs.get("data"))
+        payload = kwargs.get("json")
 
         self.assertEqual(payload.get("published_at"), published_at)
         self.assertEqual(result, expected_result)
@@ -803,12 +802,12 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.post.assert_called_once_with(
             "http://localhost/v1/feeds/123/entries/import",
-            data=mock.ANY,
+            json=mock.ANY,
             timeout=30,
         )
 
         _, kwargs = session.post.call_args
-        payload = json.loads(kwargs.get("data"))
+        payload = kwargs.get("json")
 
         self.assertEqual(payload.get("url"), "http://example.org/article.html")
         self.assertEqual(result, expected_result)
@@ -1100,12 +1099,12 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.put.assert_called_once_with(
             "http://localhost/v1/users/123",
-            data=mock.ANY,
+            json=mock.ANY,
             timeout=30,
         )
 
         _, kwargs = session.put.call_args
-        payload = json.loads(kwargs.get("data"))
+        payload = kwargs.get("json")
 
         self.assertNotIn("username", payload)
         self.assertNotIn("password", payload)
@@ -1224,12 +1223,12 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.put.assert_called_once_with(
             "http://localhost/v1/entries/123",
-            data=mock.ANY,
+            json=mock.ANY,
             timeout=30.0,
         )
 
         _, kwargs = session.put.call_args
-        payload = json.loads(kwargs.get("data"))
+        payload = kwargs.get("json")
 
         self.assertEqual(payload.get("title"), "New title")
         self.assertEqual(result, expected_result)
@@ -1250,12 +1249,12 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.put.assert_called_once_with(
             "http://localhost/v1/entries/123",
-            data=mock.ANY,
+            json=mock.ANY,
             timeout=30.0,
         )
 
         _, kwargs = session.put.call_args
-        payload = json.loads(kwargs.get("data"))
+        payload = kwargs.get("json")
 
         self.assertEqual(payload.get("content"), "New content")
         self.assertEqual(result, expected_result)
@@ -1274,12 +1273,12 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.put.assert_called_once_with(
             "http://localhost/v1/entries",
-            data=mock.ANY,
+            json=mock.ANY,
             timeout=30.0,
         )
 
         _, kwargs = session.put.call_args
-        payload = json.loads(kwargs.get("data"))
+        payload = kwargs.get("json")
 
         self.assertEqual(payload.get("entry_ids"), [123, 456])
         self.assertEqual(payload.get("status"), "read")
@@ -1320,7 +1319,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.put.assert_called_once_with(
             "http://localhost/v1/enclosures/123",
-            data=mock.ANY,
+            json=mock.ANY,
             timeout=30.0,
         )
 
@@ -1382,7 +1381,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.post.assert_called_once_with(
             "http://localhost/v1/api-keys",
-            data=json.dumps({"description": "New API Key"}),
+            json={"description": "New API Key"},
             timeout=30.0,
         )
         self.assertEqual(session.headers.get("X-Auth-Token"), "secret")

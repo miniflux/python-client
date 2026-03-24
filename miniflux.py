@@ -180,10 +180,10 @@ class Client:
 
     def flush_history(self) -> bool:
         """
-        Mark all read entries as removed excepted the starred ones.
+        Mark all read entries as removed except the starred ones.
 
         Returns:
-            bool: True if the operation was successfully scheduled, False otherwise.
+            bool: True if the operation was successfully scheduled.
         """
         endpoint = self._get_endpoint("/flush-history")
         response = self._session.delete(endpoint, timeout=self._timeout)
@@ -440,7 +440,7 @@ class Client:
         Refresh all feeds.
 
         Returns:
-            bool: True if the operation was successfully scheduled, False otherwise.
+            bool: True if the operation was successfully scheduled.
         Raises:
             ClientError: If the request fails.
         """
@@ -457,7 +457,7 @@ class Client:
         Args:
             feed_id (int): The feed ID.
         Returns:
-            bool: True if the operation was successfully scheduled, False otherwise.
+            bool: True if the operation was successfully scheduled.
         Raises:
             ClientError: If the request fails.
         """
@@ -469,12 +469,12 @@ class Client:
 
     def refresh_category(self, category_id: int) -> bool:
         """
-        Refreshes all feeds that belongs to the given category.
+        Refreshes all feeds that belong to the given category.
 
         Args:
             category_id (int): The category ID.
         Returns:
-            bool: True if the operation was successfully scheduled, False otherwise.
+            bool: True if the operation was successfully scheduled.
         Raises:
             ClientError: If the request fails.
         """
@@ -518,12 +518,12 @@ class Client:
 
     def get_feed_entries(self, feed_id: int, **kwargs) -> dict:
         """
-        Fetch all entries that belongs to the given feed.
+        Fetch all entries that belong to the given feed.
 
         Args:
             feed_id (int): The feed ID.
         Returns:
-            A list of dictionaries representing the entries.
+            A dictionary containing the total count and a list of entries.
         Raises:
             ClientError: If the request fails.
         """
@@ -607,8 +607,6 @@ class Client:
 
         Args:
             feed_id (int): The feed ID.
-        Returns:
-            A list of dictionaries representing the entries.
         Raises:
             ClientError: If the request fails.
         """
@@ -639,7 +637,7 @@ class Client:
         Fetch all entries.
 
         Returns:
-            A list of dictionaries representing the entries.
+            A dictionary containing the total count and a list of entries.
         Raises:
             ClientError: If the request fails.
         """
@@ -691,7 +689,7 @@ class Client:
             entry_ids (list[int]): The entry IDs.
             status (str): The new status.
         Returns:
-            bool: True if the operation was successful, False otherwise.
+            bool: True if the operation was successful.
         Raises:
             ClientError: If the request fails.
         """
@@ -730,7 +728,7 @@ class Client:
         Args:
             entry_id (int): The entry ID.
         Returns:
-            bool: True if the operation was successful, False otherwise.
+            bool: True if the operation was successful.
         Raises:
             ClientError: If the request fails.
         """
@@ -747,7 +745,7 @@ class Client:
         Args:
             entry_id (int): The entry ID.
         Returns:
-            bool: True if the operation was successfully queued, False otherwise.
+            bool: True if the operation was successfully queued.
         Raises:
             ClientError: If the request fails.
         """
@@ -782,7 +780,7 @@ class Client:
             enclosure_id (int): The enclosure ID.
             media_progression (int): The progression of the media.
         Returns:
-            bool: True if the operation was successful, False otherwise.
+            bool: True if the operation was successful.
         Raises:
             ClientError: If the request fails.
         """
@@ -837,7 +835,7 @@ class Client:
         Args:
             category_id (int): The category ID.
         Returns:
-            A list of dictionaries representing the entries.
+            A dictionary containing the total count and a list of entries.
         Raises:
             ClientError: If the request fails.
         """

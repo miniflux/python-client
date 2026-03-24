@@ -1154,13 +1154,15 @@ class TestMinifluxClient(unittest.TestCase):
 
         response = mock.Mock()
         response.status_code = 200
-        response.json.return_value = {}
+        response.text = "OPML feed"
 
         session.get = mock.Mock()
         session.get.return_value = response
 
         client = miniflux.Client("http://localhost", api_key="secret", session=session)
-        client.export()
+        result = client.export()
+
+        self.assertEqual(result, "OPML feed")
 
         session.get.assert_called_once_with(
             "http://localhost/v1/export",

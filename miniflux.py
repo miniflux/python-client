@@ -20,7 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from typing import List, NoReturn, Optional, Union
+from __future__ import annotations
+
+from typing import NoReturn
 
 import requests
 
@@ -107,24 +109,24 @@ class Client:
     def __init__(
         self,
         base_url: str,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+        username: str | None = None,
+        password: str | None = None,
         timeout: float = 30.0,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         user_agent: str = DEFAULT_USER_AGENT,
-        session: Optional[requests.Session] = None,
+        session: requests.Session | None = None,
     ):
         """
         Initializes the Miniflux API client.
 
         Args:
             base_url (str): The base URL of the Miniflux API. Must start with "http://" or "https://".
-            username (Optional[str]): The username for basic authentication.
+            username (str | None): The username for basic authentication.
                                       Required if `api_key` is not provided.
-            password (Optional[str]): The password for basic authentication.
+            password (str | None): The password for basic authentication.
                                       Required if `api_key` is not provided.
             timeout (float): The timeout for API requests in seconds. Default is 30.0 seconds.
-            api_key (Optional[str]): The API key for authentication.
+            api_key (str | None): The API key for authentication.
                                      If provided, takes precedence over `username` and `password`.
             user_agent (str): The User-Agent string to use for API requests.
                               Default is "Miniflux Python Client Library".
@@ -159,7 +161,7 @@ class Client:
     def _get_endpoint(self, path: str) -> str:
         return f"{self._base_url}/v{self.API_VERSION}{path}"
 
-    def _get_params(self, **kwargs) -> Optional[dict]:
+    def _get_params(self, **kwargs) -> dict | None:
         params = {k: v for k, v in kwargs.items() if v is not None}
         return params if len(params) > 0 else None
 
@@ -269,7 +271,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def discover(self, website_url: str, **kwargs) -> List[dict]:
+    def discover(self, website_url: str, **kwargs) -> list[dict]:
         """
         Discover feeds from a website.
 
@@ -293,7 +295,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def get_category_feeds(self, category_id: int) -> List[dict]:
+    def get_category_feeds(self, category_id: int) -> list[dict]:
         """
         Retrieves a list of feeds for a given category.
 
@@ -310,7 +312,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def get_feeds(self) -> List[dict]:
+    def get_feeds(self) -> list[dict]:
         """
         Retrieves a list of all feeds.
 
@@ -389,7 +391,7 @@ class Client:
         """
         return self.get_feed_icon(feed_id)
 
-    def create_feed(self, feed_url: str, category_id: Optional[int] = None, **kwargs) -> int:
+    def create_feed(self, feed_url: str, category_id: int | None = None, **kwargs) -> int:
         """
         Create a new feed.
 
@@ -543,15 +545,15 @@ class Client:
         self,
         feed_id: int,
         url: str,
-        title: Optional[str] = None,
-        author: Optional[str] = None,
-        content: Optional[str] = None,
-        published_at: Optional[int] = None,
-        status: Optional[str] = None,
-        starred: Optional[bool] = None,
-        tags: Optional[List[str]] = None,
-        external_id: Optional[str] = None,
-        comments_url: Optional[str] = None,
+        title: str | None = None,
+        author: str | None = None,
+        content: str | None = None,
+        published_at: int | None = None,
+        status: str | None = None,
+        starred: bool | None = None,
+        tags: list[str] | None = None,
+        external_id: str | None = None,
+        comments_url: str | None = None,
     ) -> dict:
         """
         Import an entry into the given feed.
@@ -653,7 +655,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def update_entry(self, entry_id: int, title: Optional[str] = None, content: Optional[str] = None) -> dict:
+    def update_entry(self, entry_id: int, title: str | None = None, content: str | None = None) -> dict:
         """
         Update an entry.
 
@@ -682,7 +684,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def update_entries(self, entry_ids: List[int], status: str) -> bool:
+    def update_entries(self, entry_ids: list[int], status: str) -> bool:
         """
         Change the status of multiple entries.
 
@@ -773,7 +775,7 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def update_enclosure(self, enclosure_id: int, media_progression: Optional[int] = None) -> bool:
+    def update_enclosure(self, enclosure_id: int, media_progression: int | None = None) -> bool:
         """
         Update an enclosure.
 
@@ -796,7 +798,7 @@ class Client:
             self._handle_error_response(response)
         return True
 
-    def get_categories(self) -> List[dict]:
+    def get_categories(self) -> list[dict]:
         """
         Fetch all categories.
 
@@ -924,7 +926,7 @@ class Client:
         if response.status_code != 204:
             self._handle_error_response(response)
 
-    def get_users(self) -> List[dict]:
+    def get_users(self) -> list[dict]:
         """
         Fetch all users.
 
@@ -965,7 +967,7 @@ class Client:
         """
         return self._get_user(username)
 
-    def _get_user(self, user_id_or_username: Union[str, int]) -> dict:
+    def _get_user(self, user_id_or_username: str | int) -> dict:
         endpoint = self._get_endpoint(f"/users/{user_id_or_username}")
         response = self._session.get(endpoint, timeout=self._timeout)
         if response.status_code == 200:
@@ -1076,12 +1078,12 @@ class Client:
             return response.json()["has_integrations"]
         self._handle_error_response(response)
 
-    def get_api_keys(self) -> List[dict]:
+    def get_api_keys(self) -> list[dict]:
         """
         Get all API keys for the current user.
 
         Returns:
-            List[dict]: A list of API keys.
+            list[dict]: A list of API keys.
         Raises:
             ClientError: If the request fails.
         """

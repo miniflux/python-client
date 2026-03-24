@@ -3,11 +3,11 @@ name = "miniflux"
 version = "1.1.5"
 description = "Client library for Miniflux"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = {file = "LICENSE.txt"}
 keywords = ["rss", "atom", "rdf", "jsonfeed", "feed", "miniflux"]
 authors = [
-  {name = "Frédéric Guillot", email = "fred@miniflux.net"}
+  {name = "Frédéric Guillot"}
 ]
 classifiers = [
     "Intended Audience :: Developers",
@@ -25,3 +25,6 @@ dependencies = [
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+line-length = 120

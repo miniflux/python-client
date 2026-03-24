@@ -20,7 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import json
 from typing import List, Optional, Union
 
 import requests
@@ -285,7 +284,7 @@ class Client:
 
         response = self._session.post(
             endpoint,
-            data=json.dumps(data),
+            json=data,
             timeout=self._timeout,
         )
         if response.status_code == 200:
@@ -406,7 +405,7 @@ class Client:
 
         response = self._session.post(
             endpoint,
-            data=json.dumps(data),
+            json=data,
             timeout=self._timeout,
         )
         if response.status_code == 201:
@@ -428,7 +427,7 @@ class Client:
         data = self._get_modification_params(**kwargs)
         response = self._session.put(
             endpoint,
-            data=json.dumps(data),
+            json=data,
             timeout=self._timeout,
         )
         if response.status_code == 201:
@@ -594,7 +593,7 @@ class Client:
 
         response = self._session.post(
             endpoint,
-            data=json.dumps(data),
+            json=data,
             timeout=self._timeout,
         )
         if response.status_code in (200, 201):
@@ -676,7 +675,7 @@ class Client:
         )
         response = self._session.put(
             endpoint,
-            data=json.dumps(data),
+            json=data,
             timeout=self._timeout,
         )
         if response.status_code == 201:
@@ -699,7 +698,7 @@ class Client:
         data = {"entry_ids": entry_ids, "status": status}
         response = self._session.put(
             endpoint,
-            data=json.dumps(data),
+            json=data,
             timeout=self._timeout,
         )
         if response.status_code >= 400:
@@ -790,7 +789,7 @@ class Client:
         data = self._get_modification_params(media_progression=media_progression)
         response = self._session.put(
             endpoint,
-            data=json.dumps(data),
+            json=data,
             timeout=self._timeout,
         )
         if response.status_code != 204:
@@ -867,7 +866,7 @@ class Client:
         data = {"title": title}
         response = self._session.post(
             endpoint,
-            data=json.dumps(data),
+            json=data,
             timeout=self._timeout,
         )
         if response.status_code == 201:
@@ -890,7 +889,7 @@ class Client:
         data = {"id": category_id, "title": title}
         response = self._session.put(
             endpoint,
-            data=json.dumps(data),
+            json=data,
             timeout=self._timeout,
         )
         if response.status_code == 201:
@@ -990,7 +989,7 @@ class Client:
         data = {"username": username, "password": password, "is_admin": is_admin}
         response = self._session.post(
             endpoint,
-            data=json.dumps(data),
+            json=data,
             timeout=self._timeout,
         )
         if response.status_code == 201:
@@ -1012,7 +1011,7 @@ class Client:
         data = self._get_modification_params(**kwargs)
         response = self._session.put(
             endpoint,
-            data=json.dumps(data),
+            json=data,
             timeout=self._timeout,
         )
         if response.status_code == 201:
@@ -1107,7 +1106,7 @@ class Client:
         data = {"description": description}
         response = self._session.post(
             endpoint,
-            data=json.dumps(data),
+            json=data,
             timeout=self._timeout,
         )
         if response.status_code == 201:

@@ -89,6 +89,14 @@ class TestMinifluxClient(unittest.TestCase):
         self.assertEqual(error.status_code, 404)
         self.assertEqual(error.get_error_reason(), "status_code=404")
 
+    def test_get_error_reason_with_charset_in_content_type(self):
+        response = mock.Mock()
+        response.status_code = 400
+        response.headers = {"Content-Type": "application/json; charset=utf-8"}
+        response.json.return_value = {"error_message": "invalid input"}
+        error = BadRequest(response)
+        self.assertEqual(error.get_error_reason(), "invalid input")
+
     def test_get_error_reason_without_json_content_type(self):
         response = mock.Mock()
         response.status_code = 500

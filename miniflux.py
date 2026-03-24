@@ -49,7 +49,8 @@ class ClientError(Exception):
             str: The error message from the response body, or a default message if not available.
         """
         default_reason = f"status_code={self.status_code}"
-        if self._response.headers.get("Content-Type") == "application/json":
+        content_type = self._response.headers.get("Content-Type", "")
+        if content_type.startswith("application/json"):
             result = self._response.json()
             if isinstance(result, dict):
                 return result.get("error_message", default_reason)

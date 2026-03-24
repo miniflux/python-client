@@ -159,7 +159,7 @@ class Client:
         return f"{self._base_url}/v{self.API_VERSION}{path}"
 
     def _get_params(self, **kwargs) -> Optional[dict]:
-        params = {k: v for k, v in kwargs.items() if v}
+        params = {k: v for k, v in kwargs.items() if v is not None}
         return params if len(params) > 0 else None
 
     def _get_modification_params(self, **kwargs) -> dict:

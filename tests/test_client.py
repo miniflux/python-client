@@ -999,7 +999,29 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.get.assert_called_once_with(
             "http://localhost/v1/entries",
-            params={"after_entry_id": 123},
+            params={"starred": False, "after_entry_id": 123},
+            timeout=30,
+        )
+
+        assert result == expected_result
+
+    def test_get_entries_with_zero_offset(self):
+        session = requests.Session()
+        expected_result = []
+
+        response = mock.Mock()
+        response.status_code = 200
+        response.json.return_value = expected_result
+
+        session.get = mock.Mock()
+        session.get.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
+        result = client.get_entries(offset=0, status="unread")
+
+        session.get.assert_called_once_with(
+            "http://localhost/v1/entries",
+            params={"offset": 0, "status": "unread"},
             timeout=30,
         )
 

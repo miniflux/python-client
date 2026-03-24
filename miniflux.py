@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from typing import List, Optional, Union
+from typing import List, NoReturn, Optional, Union
 
 import requests
 
@@ -164,7 +164,7 @@ class Client:
     def _get_modification_params(self, **kwargs) -> dict:
         return {k: v for k, v in kwargs.items() if v is not None}
 
-    def _handle_error_response(self, response: requests.Response):
+    def _handle_error_response(self, response: requests.Response) -> NoReturn:
         if response.status_code == 404:
             raise ResourceNotFound(response)
         if response.status_code == 403:

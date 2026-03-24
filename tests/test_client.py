@@ -48,6 +48,21 @@ class TestMinifluxClient(unittest.TestCase):
         self.assertEqual(error.status_code, 404)
         self.assertEqual(error.get_error_reason(), "some error")
 
+    def test_error_str_with_json_reason(self):
+        response = mock.Mock()
+        response.status_code = 404
+        response.headers = {"Content-Type": "application/json"}
+        response.json.return_value = {"error_message": "feed not found"}
+        error = ResourceNotFound(response)
+        self.assertEqual(str(error), "feed not found")
+
+    def test_error_str_without_json_reason(self):
+        response = mock.Mock()
+        response.status_code = 500
+        response.headers = {}
+        error = ServerError(response)
+        self.assertEqual(str(error), "status_code=500")
+
     def test_default_session_not_shared(self):
         client_one = miniflux.Client("http://localhost", api_key="token-one")
         client_two = miniflux.Client("http://localhost", api_key="token-two")

@@ -147,6 +147,8 @@ The following methods are available on the `miniflux.Client` object:
 - `update_entries(entry_ids: list[int], status: str)`
 - `fetch_entry_content(entry_id: int)`
 - `toggle_bookmark(entry_id: int)`
+- `share_entry(entry_id: int)`
+- `unshare_entry(entry_id: int)`
 - `save_entry(entry_id: int)`
 - `get_enclosure(enclosure_id: int)`
 - `update_enclosure(enclosure_id: int, media_progression: int|None = None)`

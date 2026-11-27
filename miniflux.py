@@ -26,7 +26,6 @@ from typing import NoReturn
 
 import requests
 
-
 DEFAULT_USER_AGENT = "Miniflux Python Client Library"
 
 
@@ -64,15 +63,11 @@ class ResourceNotFound(ClientError):
     Exception raised when the API client receives a 404 response from the server.
     """
 
-    pass
-
 
 class AccessForbidden(ClientError):
     """
     Exception raised when the API client receives a 403 response from the server.
     """
-
-    pass
 
 
 class AccessUnauthorized(ClientError):
@@ -80,23 +75,17 @@ class AccessUnauthorized(ClientError):
     Exception raised when the API client receives a 401 response from the server.
     """
 
-    pass
-
 
 class BadRequest(ClientError):
     """
     Exception raised when the API client receives a 400 response from the server.
     """
 
-    pass
-
 
 class ServerError(ClientError):
     """
     Exception raised when the API client receives a 500 response from the server.
     """
-
-    pass
 
 
 class Client:
@@ -283,7 +272,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/discover")
-        data = dict(url=website_url)
+        data = {"url": website_url}
         data.update(kwargs)
 
         response = self._session.post(
@@ -404,7 +393,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/feeds")
-        data = dict(feed_url=feed_url, category_id=category_id)
+        data = {"feed_url": feed_url, "category_id": category_id}
         data.update(kwargs)
 
         response = self._session.post(
@@ -581,18 +570,16 @@ class Client:
 
         endpoint = self._get_endpoint(f"/feeds/{feed_id}/entries/import")
         data = self._get_modification_params(
-            **{
-                "url": url,
-                "title": title,
-                "author": author,
-                "content": content,
-                "published_at": published_at,
-                "status": status,
-                "starred": starred,
-                "tags": tags,
-                "external_id": external_id,
-                "comments_url": comments_url,
-            }
+            url=url,
+            title=title,
+            author=author,
+            content=content,
+            published_at=published_at,
+            status=status,
+            starred=starred,
+            tags=tags,
+            external_id=external_id,
+            comments_url=comments_url,
         )
 
         response = self._session.post(
@@ -669,12 +656,7 @@ class Client:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/entries/{entry_id}")
-        data = self._get_modification_params(
-            **{
-                "title": title,
-                "content": content,
-            }
-        )
+        data = self._get_modification_params(title=title, content=content)
         response = self._session.put(
             endpoint,
             json=data,

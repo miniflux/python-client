@@ -54,10 +54,10 @@ feed_id = client.create_feed("http://example.org/feed.xml", category_id=42, craw
 entries = client.get_entries(starred=True, limit=10)
 
 # Fetch last 5 feed entries
-feed_entries = client.get_feed_entries(123, direction='desc', order='published_at', limit=5)
+feed_entries = client.get_feed_entries(123, direction="desc", order="published_at", limit=5)
 
 # Fetch entries that belongs to a category with status unread and read
-entries = client.get_entries(category_id=456, status=['read', 'unread'])
+entries = client.get_entries(category_id=456, status=["read", "unread"])
 
 # Update entry title and content
 client.update_entry(entry_id=1234, title="New title", content="New content")

@@ -1170,6 +1170,90 @@ class TestMinifluxClient(unittest.TestCase):
         )
         self.assertEqual(session.headers.get("X-Auth-Token"), "secret")
 
+    def test_share_entry(self):
+        session = requests.Session()
+        expected_result = {"share_code": "ExampleShareCode"}
+
+        response = mock.Mock()
+        response.status_code = 200
+        response.json.return_value = expected_result
+        session.post = mock.Mock()
+        session.post.return_value = response
+
+        client = miniflux.Client("http://localhost", api_key="secret", session=session)
+        result = client.share_entry(123)
+
+        session.post.assert_called_once_with(
+            "http://localhost/v1/entries/123/share",
+            timeout=30.0,
+        )
+        self.assertEqual(session.headers.get("X-Auth-Token"), "secret")
+        self.assertEqual(result, "ExampleShareCode")
+
+    def test_share_entry_created(self):
+        session = requests.Session()
+        expected_result = {"share_code": "ExampleShareCode"}
+
+        response = mock.Mock()
+        response.status_code = 201
+        response.json.return_value = expected_result
+        session.post = mock.Mock()
+        session.post.return_value = response
+
+        client = miniflux.Client("http://localhost", api_key="secret", session=session)
+        result = client.share_entry(123)
+
+        session.post.assert_called_once_with(
+            "http://localhost/v1/entries/123/share",
+            timeout=30.0,
+        )
+        self.assertEqual(session.headers.get("X-Auth-Token"), "secret")
+        self.assertEqual(result, "ExampleShareCode")
+
+    def test_share_entry_not_found(self):
+        session = requests.Session()
+
+        response = mock.Mock()
+        response.status_code = 404
+        session.post = mock.Mock()
+        session.post.return_value = response
+
+        client = miniflux.Client("http://localhost", api_key="secret", session=session)
+        with self.assertRaises(ClientError):
+            client.share_entry(123)
+
+    def test_unshare_entry(self):
+        session = requests.Session()
+
+        response = mock.Mock()
+        response.status_code = 204
+
+        session.delete = mock.Mock()
+        session.delete.return_value = response
+
+        client = miniflux.Client("http://localhost", api_key="secret", session=session)
+        result = client.unshare_entry(123)
+
+        session.delete.assert_called_once_with(
+            "http://localhost/v1/entries/123/share",
+            timeout=30.0,
+        )
+        self.assertEqual(session.headers.get("X-Auth-Token"), "secret")
+        self.assertTrue(result)
+
+    def test_unshare_entry_not_found(self):
+        session = requests.Session()
+
+        response = mock.Mock()
+        response.status_code = 404
+
+        session.delete = mock.Mock()
+        session.delete.return_value = response
+
+        client = miniflux.Client("http://localhost", api_key="secret", session=session)
+        with self.assertRaises(ClientError):
+            client.unshare_entry(123)
+
     def test_save_entry(self):
         session = requests.Session()
         expected_result = True

@@ -721,6 +721,43 @@ class Client:
             self._handle_error_response(response)
         return True
 
+    def share_entry(self, entry_id: int) -> str:
+        """
+        Returns the share code of an entry, creating one if needed.
+
+        Args:
+            entry_id (int): The entry ID.
+        Returns:
+            str: The share code.
+        Raises:
+            ClientError: If the request fails.
+        """
+        endpoint = self._get_endpoint(f"/entries/{entry_id}/share")
+        response = self._session.post(endpoint, timeout=self._timeout)
+        if response.status_code >= 400:
+            self._handle_error_response(response)
+        try:
+            return response.json()["share_code"]
+        except (ValueError, KeyError):
+            self._handle_error_response(response)
+
+    def unshare_entry(self, entry_id: int) -> bool:
+        """
+        Remove the share code of an entry.
+
+        Args:
+            entry_id (int): The entry ID.
+        Returns:
+            bool: True if the operation was successful.
+        Raises:
+            ClientError: If the request fails.
+        """
+        endpoint = self._get_endpoint(f"/entries/{entry_id}/share")
+        response = self._session.delete(endpoint, timeout=self._timeout)
+        if response.status_code >= 400:
+            self._handle_error_response(response)
+        return True
+
     def save_entry(self, entry_id: int) -> bool:
         """
         Send an entry to a third-party service if enabled.

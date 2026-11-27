@@ -149,7 +149,8 @@ class Client:
         return f"{self._base_url}/v{self.API_VERSION}{path}"
 
     def _get_params(self, **kwargs) -> dict | None:
-        params = {k: v for k, v in kwargs.items() if v is not None}
+        # requests encodes True as "True", but some endpoints only accept "true" or "false".
+        params = {k: (str(v).lower() if isinstance(v, bool) else v) for k, v in kwargs.items() if v is not None}
         return params if len(params) > 0 else None
 
     def _get_modification_params(self, **kwargs) -> dict:
@@ -640,6 +641,50 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
+    def get_entry_ids(self, **kwargs) -> dict:
+        """
+        Fetch the IDs of the entries matching the given filters.
+
+        Requires Miniflux 2.3.2 or later, which supports the `limit`, `offset`, `starred`
+        and a single `status` filter. The other filters, and repeating `status`, require
+        Miniflux 2.3.6 or later.
+
+        Args:
+            limit (int): Maximum number of IDs to return (the server caps it at 10000).
+            offset (int): Number of IDs to skip.
+            status (str | list[str]): Entry status, "read" or "unread". Pass a list to match several statuses.
+            starred (bool): Only starred or only non-starred entries.
+            order (str): Sort column, for example "id", "published_at" or "category_title".
+            direction (str): Sort direction, "asc" or "desc".
+            feed_id (int): Only entries of this feed.
+            category_id (int): Only entries of this category.
+            before (int): Entries published before this Unix timestamp.
+            after (int): Entries published after this Unix timestamp.
+            published_before (int): Entries published before this Unix timestamp.
+            published_after (int): Entries published after this Unix timestamp.
+            changed_before (int): Entries changed before this Unix timestamp.
+            changed_after (int): Entries changed after this Unix timestamp.
+            before_entry_id (int): Entries with an ID lower than this one.
+            after_entry_id (int): Entries with an ID greater than this one.
+            search (str): Full-text search query.
+            tags (list[str]): Only entries with all these tags (case-insensitive).
+            globally_visible (bool): If True, exclude entries from feeds and categories hidden globally.
+        Returns:
+            A dictionary containing the total count and a list of entry IDs.
+        Raises:
+            ClientError: If the request fails.
+        """
+        endpoint = self._get_endpoint("/entries/ids")
+        params = self._get_params(**kwargs)
+        response = self._session.get(
+            endpoint,
+            params=params,
+            timeout=self._timeout,
+        )
+        if response.status_code == 200:
+            return response.json()
+        self._handle_error_response(response)
+
     def update_entry(self, entry_id: int, title: str | None = None, content: str | None = None) -> dict:
         """
         Update an entry.
@@ -664,20 +709,25 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def update_entries(self, entry_ids: list[int], status: str) -> bool:
+    def update_entries(self, entry_ids: list[int], status: str | None = None, starred: bool | None = None) -> bool:
         """
-        Change the status of multiple entries.
+        Change the status and/or the starred state of multiple entries.
 
         Args:
             entry_ids (list[int]): The entry IDs.
-            status (str): The new status.
+            status (str): The new status, "read" or "unread".
+            starred (bool): The new starred state. Requires Miniflux 2.3.2 or later.
         Returns:
             bool: True if the operation was successful.
         Raises:
+            ValueError: If neither `status` nor `starred` is provided.
             ClientError: If the request fails.
         """
+        if status is None and starred is None:
+            raise ValueError("Either status or starred must be provided")
+
         endpoint = self._get_endpoint("/entries")
-        data = {"entry_ids": entry_ids, "status": status}
+        data = self._get_modification_params(entry_ids=entry_ids, status=status, starred=starred)
         response = self._session.put(
             endpoint,
             json=data,
@@ -687,19 +737,21 @@ class Client:
             self._handle_error_response(response)
         return True
 
-    def fetch_entry_content(self, entry_id: int) -> dict:
+    def fetch_entry_content(self, entry_id: int, update_content: bool = False) -> dict:
         """
         Scrape the entry original URL and returns the content.
 
         Args:
             entry_id (int): The entry ID.
+            update_content (bool): Also save the scraped content to the entry. Requires Miniflux 2.2.8 or later.
         Returns:
-            A dictionary representing the entry content.
+            A dictionary containing the content and the reading time.
         Raises:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/entries/{entry_id}/fetch-content")
-        response = self._session.get(endpoint, timeout=self._timeout)
+        params = self._get_params(update_content=update_content or None)
+        response = self._session.get(endpoint, params=params, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         self._handle_error_response(response)
@@ -815,17 +867,21 @@ class Client:
             self._handle_error_response(response)
         return True
 
-    def get_categories(self) -> list[dict]:
+    def get_categories(self, counts: bool = False) -> list[dict]:
         """
         Fetch all categories.
 
+        Args:
+            counts (bool): Include the `feed_count` and `total_unread` fields of each category.
+                           Requires Miniflux 2.2.12 or later.
         Returns:
             A list of dictionaries representing the categories.
         Raises:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/categories")
-        response = self._session.get(endpoint, timeout=self._timeout)
+        params = self._get_params(counts=counts or None)
+        response = self._session.get(endpoint, params=params, timeout=self._timeout)
         if response.status_code == 200:
             return response.json()
         self._handle_error_response(response)
@@ -870,19 +926,21 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def create_category(self, title: str) -> dict:
+    def create_category(self, title: str, hide_globally: bool | None = None) -> dict:
         """
         Create a new category.
 
         Args:
             title (str): The category title.
+            hide_globally (bool): Hide the category entries from the global unread list.
+                                  Requires Miniflux 2.2.8 or later.
         Returns:
             A dictionary representing the created category.
         Raises:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint("/categories")
-        data = {"title": title}
+        data = self._get_modification_params(title=title, hide_globally=hide_globally)
         response = self._session.post(
             endpoint,
             json=data,
@@ -892,20 +950,22 @@ class Client:
             return response.json()
         self._handle_error_response(response)
 
-    def update_category(self, category_id: int, title: str) -> dict:
+    def update_category(self, category_id: int, title: str | None = None, hide_globally: bool | None = None) -> dict:
         """
-        Update a category.
+        Update a category. Fields left as None are unchanged.
 
         Args:
             category_id (int): The category ID.
             title (str): The category title.
+            hide_globally (bool): Hide the category entries from the global unread list.
+                                  Requires Miniflux 2.2.8 or later.
         Returns:
             A dictionary representing the updated category.
         Raises:
             ClientError: If the request fails.
         """
         endpoint = self._get_endpoint(f"/categories/{category_id}")
-        data = {"id": category_id, "title": title}
+        data = self._get_modification_params(id=category_id, title=title, hide_globally=hide_globally)
         response = self._session.put(
             endpoint,
             json=data,

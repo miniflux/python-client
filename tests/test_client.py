@@ -933,10 +933,33 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.get.assert_called_once_with(
             "http://localhost/v1/entries/123/fetch-content",
+            params=None,
             timeout=30,
         )
 
         assert result == expected_result
+
+    def test_fetch_entry_content_with_update_content(self):
+        session = requests.Session()
+        expected_result = {"content": "<p>Scraped content</p>", "reading_time": 2}
+
+        response = mock.Mock()
+        response.status_code = 200
+        response.json.return_value = expected_result
+
+        session.get = mock.Mock()
+        session.get.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
+        result = client.fetch_entry_content(123, update_content=True)
+
+        session.get.assert_called_once_with(
+            "http://localhost/v1/entries/123/fetch-content",
+            params={"update_content": "true"},
+            timeout=30,
+        )
+
+        self.assertEqual(result, expected_result)
 
     def test_get_entries(self):
         session = requests.Session()
@@ -999,7 +1022,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.get.assert_called_once_with(
             "http://localhost/v1/entries",
-            params={"starred": True},
+            params={"starred": "true"},
             timeout=30,
         )
 
@@ -1021,7 +1044,7 @@ class TestMinifluxClient(unittest.TestCase):
 
         session.get.assert_called_once_with(
             "http://localhost/v1/entries",
-            params={"starred": False, "after_entry_id": 123},
+            params={"starred": "false", "after_entry_id": 123},
             timeout=30,
         )
 
@@ -1048,6 +1071,117 @@ class TestMinifluxClient(unittest.TestCase):
         )
 
         assert result == expected_result
+
+    def test_get_entry_ids(self):
+        session = requests.Session()
+        expected_result = {"total": 2, "entry_ids": [456, 123]}
+
+        response = mock.Mock()
+        response.status_code = 200
+        response.json.return_value = expected_result
+
+        session.get = mock.Mock()
+        session.get.return_value = response
+
+        client = miniflux.Client("http://localhost", api_key="secret", session=session)
+        result = client.get_entry_ids()
+
+        session.get.assert_called_once_with(
+            "http://localhost/v1/entries/ids",
+            params=None,
+            timeout=30.0,
+        )
+        self.assertEqual(result, expected_result)
+
+    def test_get_entry_ids_with_filters(self):
+        session = requests.Session()
+        expected_result = {"total": 1, "entry_ids": [123]}
+
+        response = mock.Mock()
+        response.status_code = 200
+        response.json.return_value = expected_result
+
+        session.get = mock.Mock()
+        session.get.return_value = response
+
+        client = miniflux.Client("http://localhost", api_key="secret", session=session)
+        result = client.get_entry_ids(
+            limit=100,
+            offset=0,
+            status=["read", "unread"],
+            starred=False,
+            order="published_at",
+            direction="asc",
+            feed_id=12,
+            category_id=34,
+            published_after=1736200000,
+            changed_before=1736300000,
+            after_entry_id=99,
+            search="python",
+            tags=["news", "tech"],
+            globally_visible=True,
+        )
+
+        session.get.assert_called_once_with(
+            "http://localhost/v1/entries/ids",
+            params={
+                "limit": 100,
+                "offset": 0,
+                "status": ["read", "unread"],
+                "starred": "false",
+                "order": "published_at",
+                "direction": "asc",
+                "feed_id": 12,
+                "category_id": 34,
+                "published_after": 1736200000,
+                "changed_before": 1736300000,
+                "after_entry_id": 99,
+                "search": "python",
+                "tags": ["news", "tech"],
+                "globally_visible": "true",
+            },
+            timeout=30.0,
+        )
+        self.assertEqual(result, expected_result)
+
+    def test_get_entry_ids_query_string(self):
+        session = requests.Session()
+
+        response = mock.Mock()
+        response.status_code = 200
+        response.json.return_value = {"total": 0, "entry_ids": []}
+
+        session.get = mock.Mock()
+        session.get.return_value = response
+
+        client = miniflux.Client("http://localhost", api_key="secret", session=session)
+        client.get_entry_ids(starred=True, status=["read", "unread"], tags=["a", "b"])
+
+        # The endpoint rejects "True" and expects repeated parameters for lists.
+        args, kwargs = session.get.call_args
+        url = requests.Request("GET", args[0], params=kwargs["params"]).prepare().url
+        self.assertEqual(
+            url,
+            "http://localhost/v1/entries/ids?starred=true&status=read&status=unread&tags=a&tags=b",
+        )
+
+    def test_get_entry_ids_with_bad_request(self):
+        session = requests.Session()
+
+        response = mock.Mock()
+        response.status_code = 400
+        response.headers = {"Content-Type": "application/json"}
+        response.json.return_value = {"error_message": "invalid feed_id parameter, must be a positive integer"}
+
+        session.get = mock.Mock()
+        session.get.return_value = response
+
+        client = miniflux.Client("http://localhost", api_key="secret", session=session)
+
+        with self.assertRaises(BadRequest) as context:
+            client.get_entry_ids(feed_id=-1)
+
+        self.assertEqual(str(context.exception), "invalid feed_id parameter, must be a positive integer")
 
     def test_get_user_by_id(self):
         session = requests.Session()
@@ -1316,6 +1450,134 @@ class TestMinifluxClient(unittest.TestCase):
 
         assert result == expected_result
 
+    def test_get_categories(self):
+        session = requests.Session()
+        expected_result = [{"id": 1, "title": "All", "user_id": 1, "hide_globally": False}]
+
+        response = mock.Mock()
+        response.status_code = 200
+        response.json.return_value = expected_result
+
+        session.get = mock.Mock()
+        session.get.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
+        result = client.get_categories()
+
+        session.get.assert_called_once_with(
+            "http://localhost/v1/categories",
+            params=None,
+            timeout=30.0,
+        )
+        self.assertEqual(result, expected_result)
+
+    def test_get_categories_with_counts(self):
+        session = requests.Session()
+        expected_result = [
+            {"id": 1, "title": "All", "user_id": 1, "hide_globally": False, "feed_count": 3, "total_unread": 7}
+        ]
+
+        response = mock.Mock()
+        response.status_code = 200
+        response.json.return_value = expected_result
+
+        session.get = mock.Mock()
+        session.get.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
+        result = client.get_categories(counts=True)
+
+        session.get.assert_called_once_with(
+            "http://localhost/v1/categories",
+            params={"counts": "true"},
+            timeout=30.0,
+        )
+        self.assertEqual(result, expected_result)
+
+    def test_create_category(self):
+        session = requests.Session()
+        expected_result = {"id": 2, "title": "News", "user_id": 1, "hide_globally": False}
+
+        response = mock.Mock()
+        response.status_code = 201
+        response.json.return_value = expected_result
+
+        session.post = mock.Mock()
+        session.post.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
+        result = client.create_category("News")
+
+        session.post.assert_called_once_with(
+            "http://localhost/v1/categories",
+            json={"title": "News"},
+            timeout=30.0,
+        )
+        self.assertEqual(result, expected_result)
+
+    def test_create_category_hidden_globally(self):
+        session = requests.Session()
+        expected_result = {"id": 2, "title": "News", "user_id": 1, "hide_globally": True}
+
+        response = mock.Mock()
+        response.status_code = 201
+        response.json.return_value = expected_result
+
+        session.post = mock.Mock()
+        session.post.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
+        result = client.create_category("News", hide_globally=True)
+
+        session.post.assert_called_once_with(
+            "http://localhost/v1/categories",
+            json={"title": "News", "hide_globally": True},
+            timeout=30.0,
+        )
+        self.assertEqual(result, expected_result)
+
+    def test_update_category(self):
+        session = requests.Session()
+        expected_result = {"id": 2, "title": "Tech", "user_id": 1, "hide_globally": False}
+
+        response = mock.Mock()
+        response.status_code = 201
+        response.json.return_value = expected_result
+
+        session.put = mock.Mock()
+        session.put.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
+        result = client.update_category(2, "Tech")
+
+        session.put.assert_called_once_with(
+            "http://localhost/v1/categories/2",
+            json={"id": 2, "title": "Tech"},
+            timeout=30.0,
+        )
+        self.assertEqual(result, expected_result)
+
+    def test_update_category_hide_globally_only(self):
+        session = requests.Session()
+        expected_result = {"id": 2, "title": "Tech", "user_id": 1, "hide_globally": False}
+
+        response = mock.Mock()
+        response.status_code = 201
+        response.json.return_value = expected_result
+
+        session.put = mock.Mock()
+        session.put.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
+        result = client.update_category(2, hide_globally=False)
+
+        session.put.assert_called_once_with(
+            "http://localhost/v1/categories/2",
+            json={"id": 2, "hide_globally": False},
+            timeout=30.0,
+        )
+        self.assertEqual(result, expected_result)
+
     def test_update_entry_title(self):
         session = requests.Session()
         expected_result = {"id": 123, "title": "New title"}
@@ -1391,7 +1653,57 @@ class TestMinifluxClient(unittest.TestCase):
 
         self.assertEqual(payload.get("entry_ids"), [123, 456])
         self.assertEqual(payload.get("status"), "read")
+        self.assertNotIn("starred", payload)
         self.assertTrue(result)
+
+    def test_update_entries_starred(self):
+        session = requests.Session()
+
+        response = mock.Mock()
+        response.status_code = 204
+
+        session.put = mock.Mock()
+        session.put.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
+        result = client.update_entries(entry_ids=[123, 456], starred=False)
+
+        session.put.assert_called_once_with(
+            "http://localhost/v1/entries",
+            json={"entry_ids": [123, 456], "starred": False},
+            timeout=30.0,
+        )
+        self.assertTrue(result)
+
+    def test_update_entries_status_and_starred(self):
+        session = requests.Session()
+
+        response = mock.Mock()
+        response.status_code = 204
+
+        session.put = mock.Mock()
+        session.put.return_value = response
+
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
+        result = client.update_entries([123], "unread", starred=True)
+
+        session.put.assert_called_once_with(
+            "http://localhost/v1/entries",
+            json={"entry_ids": [123], "status": "unread", "starred": True},
+            timeout=30.0,
+        )
+        self.assertTrue(result)
+
+    def test_update_entries_without_status_or_starred(self):
+        session = requests.Session()
+        session.put = mock.Mock()
+
+        client = miniflux.Client("http://localhost", "username", "password", session=session)
+
+        with self.assertRaises(ValueError):
+            client.update_entries(entry_ids=[123])
+
+        session.put.assert_not_called()
 
     def test_get_enclosure(self):
         session = requests.Session()

@@ -6,9 +6,9 @@ Python client library for [Miniflux](https://miniflux.app).
 Requirements
 ------------
 
-- Miniflux >= 2.0.49
+- Miniflux >= 2.3.6 is required to use all features exposed by the API
 - Python >= 3.10
-- requests
+- requests library
 
 This project uses [Ruff](https://docs.astral.sh/ruff/) for linting and formatting.
 
@@ -58,6 +58,12 @@ feed_entries = client.get_feed_entries(123, direction="desc", order="published_a
 
 # Fetch entries that belongs to a category with status unread and read
 entries = client.get_entries(category_id=456, status=["read", "unread"])
+
+# Fetch the IDs of unread entries
+entry_ids = client.get_entry_ids(status="unread")["entry_ids"]
+
+# Mark entries as read and star them
+client.update_entries([1234, 5678], status="read", starred=True)
 
 # Update entry title and content
 client.update_entry(entry_id=1234, title="New title", content="New content")
@@ -111,11 +117,11 @@ The following methods are available on the `miniflux.Client` object:
 
 #### Category Management
 
-- `get_categories()`
+- `get_categories(counts: bool = False)`
 - `get_category_entry(category_id: int, entry_id: int)`
 - `get_category_entries(category_id: int, **kwargs)`
-- `create_category(title: str)`
-- `update_category(category_id: int, title: str)`
+- `create_category(title: str, hide_globally: bool|None = None)`
+- `update_category(category_id: int, title: str|None = None, hide_globally: bool|None = None)`
 - `delete_category(category_id: int)`
 
 #### Feed Management
@@ -143,9 +149,10 @@ The following methods are available on the `miniflux.Client` object:
 - `mark_feed_entries_as_read(feed_id: int)`
 - `get_entry(entry_id: int)`
 - `get_entries(**kwargs)`
+- `get_entry_ids(**kwargs)`
 - `update_entry(entry_id: int, title: str|None = None, content: str|None = None)`
-- `update_entries(entry_ids: list[int], status: str)`
-- `fetch_entry_content(entry_id: int)`
+- `update_entries(entry_ids: list[int], status: str|None = None, starred: bool|None = None)`
+- `fetch_entry_content(entry_id: int, update_content: bool = False)`
 - `toggle_bookmark(entry_id: int)`
 - `share_entry(entry_id: int)`
 - `unshare_entry(entry_id: int)`

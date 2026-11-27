@@ -728,7 +728,7 @@ class Client:
         Args:
             entry_id (int): The entry ID.
         Returns:
-            str: The share code
+            str: The share code.
         Raises:
             ClientError: If the request fails.
         """
@@ -736,11 +736,14 @@ class Client:
         response = self._session.post(endpoint, timeout=self._timeout)
         if response.status_code >= 400:
             self._handle_error_response(response)
-        return response.json()['share_code']
+        try:
+            return response.json()["share_code"]
+        except (ValueError, KeyError):
+            self._handle_error_response(response)
 
     def unshare_entry(self, entry_id: int) -> bool:
         """
-        Remove the share code of an entry
+        Remove the share code of an entry.
 
         Args:
             entry_id (int): The entry ID.

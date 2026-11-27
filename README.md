@@ -149,7 +149,7 @@ The following methods are available on the `miniflux.Client` object:
 - `toggle_bookmark(entry_id: int)`
 - `save_entry(entry_id: int)`
 - `get_enclosure(enclosure_id: int)`
-- `update_enclosure(enclosure_id: int, media_progression: Optional[int] = None)`
+- `update_enclosure(enclosure_id: int, media_progression: int|None = None)`
 - `mark_category_entries_as_read(category_id: int)`
 - `mark_user_entries_as_read(user_id: int)`
 

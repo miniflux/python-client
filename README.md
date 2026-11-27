@@ -7,7 +7,7 @@ Requirements
 ------------
 
 - Miniflux >= 2.0.49
-- Python >= 3.9
+- Python >= 3.10
 - requests
 
 This project uses [Ruff](https://docs.astral.sh/ruff/) for linting and formatting.
